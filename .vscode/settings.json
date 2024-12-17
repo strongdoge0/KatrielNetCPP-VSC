@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.embeddedhtml": "html",
         "string": "cpp",
         "algorithm": "cpp",
         "cmath": "cpp",
@@ -72,6 +73,12 @@
         "filesystem": "cpp",
         "ratio": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "mutex": "cpp",
+        "random": "cpp",
+        "regex": "cpp",
+        "unordered_set": "cpp"
     }
 }
