@@ -49,7 +49,7 @@ void StartServer() {
   WSAStartup(MAKEWORD(2, 2), &wsaData);
 
   // Создание UDP сокета
-  sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   // Заполнение структуры адреса сервера
   server_addr.sin_family = AF_INET;
@@ -59,7 +59,7 @@ void StartServer() {
   // Привязка сокета к адресу
   bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-  std::cout << "UDP сервер запущен. Ожидание сообщений..." << std::endl;
+  std::cout << "UDP server start on port " << std::to_string(port) << std::endl;
 
   while (true) {
     Sleep(10);
@@ -67,7 +67,7 @@ void StartServer() {
     int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
                      (struct sockaddr *)&client_addr, &client_len);
     buffer[n] = '\0'; // Завершение строки
-    if (n > 0) {
+    if (n >= 0) {
       std::cout << "Receive " << std::to_string(n) << " bytes, "
                 << "message: " << buffer << ", from "
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
@@ -99,6 +99,8 @@ void StartServer() {
 
 int main(int argc, char **argv) {
   setlocale(LC_ALL, "ru_RU.UTF-8");
+  //SetConsoleCP(1251); // Установка кодовой страницы для ввода
+  //SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
   g_argc = argc;
   g_argv = argv;
 

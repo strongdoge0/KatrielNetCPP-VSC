@@ -12,6 +12,7 @@ project(${Client} VERSION 17.12.24)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
 set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "/NODEFAULTLIBS:MSVCRT" )
 
 #file(GLOB net "src/net/*.h" "src/net/*.hpp" "src/net/*.cpp" "src/net/*.c")
