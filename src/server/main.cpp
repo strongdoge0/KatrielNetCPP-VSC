@@ -2,14 +2,10 @@
 
 int PressAnyKey();
 
-void ServerApp(){
-  std::cout << "\tTest UDP Server" << std::endl;
-}
-
 
 int main(int argc, char **argv)
 {
-  ServerApp();
+  std::cout << "\tTest UDP Server" << std::endl;
 
   return PressAnyKey();
 }
