@@ -62,35 +62,25 @@ void StartServer() {
   std::cout << "UDP server start on port " << std::to_string(port) << std::endl;
 
   while (true) {
-    Sleep(10);
     // Прием данных от клиента
     int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
                      (struct sockaddr *)&client_addr, &client_len);
     buffer[n] = '\0'; // Завершение строки
+    
     if (n >= 0) {
-      std::cout << "Receive " << std::to_string(n) << " bytes, "
-                << "message: " << buffer << ", from "
-                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
+      std::cout << "Receive " << std::to_string(n) << " bytes"
+                << " message: " << buffer
+                << " from " << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
 
-      /*// Буфер для хранения строкового представления адреса
-      char address_string[INET_ADDRSTRLEN]; // Достаточно для IPv4
-      DWORD address_string_length = sizeof(address_string);
-
-      // Преобразование sockaddr в строку
-      sockaddr_to_string((sockaddr *)&client_addr, address_string,
-                         &address_string_length);
-
-      std::cout << "Строковое представление адреса: " << address_string
-                << std::endl;*/
-
-      // Отправка ответа клиенту
-      sendto(sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, client_len);
-      std::cout << "Send " << std::to_string(n) << " bytes "
-                << " to "
-                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
+      // Отправка ответа клиенту обратно его же сообщения
+      int s = sendto(sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, client_len);
+      std::cout << "Send " << std::to_string(s) << " bytes"
+                << " to " << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
     }
+    
+    Sleep(10);
   }
 
   closesocket(sockfd); // Закрытие сокета
@@ -98,7 +88,7 @@ void StartServer() {
 }
 
 int main(int argc, char **argv) {
-  setlocale(LC_ALL, "ru_RU.UTF-8");
+  //setlocale(LC_ALL, "ru_RU.UTF-8");
   //SetConsoleCP(1251); // Установка кодовой страницы для ввода
   //SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
   g_argc = argc;

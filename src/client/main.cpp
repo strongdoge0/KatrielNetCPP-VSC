@@ -32,25 +32,6 @@ void InitCommandLineArgs() {
   std::cout << FindArgumentInCommandLine("-password") << std::endl;*/
 }
 
-/*std::string WcharToUtf8(const std::wstring& wstr) {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.to_bytes(wstr);
-}*/
-
-std::string WstringToString(const std::wstring& wstr) {
-    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-    std::string str(size_needed, 0);
-    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size_needed, nullptr, nullptr);
-    return str;
-}
-
-std::wstring StringToWstring(const std::string& str) {
-    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-    std::wstring wstr(size_needed, 0);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], size_needed);
-    return wstr;
-}
-
 void StartClient() {
   WSADATA wsaData;
   SOCKET sockfd;
@@ -67,68 +48,45 @@ void StartClient() {
   server_addr.sin_port = htons(port); // Порт сервера
   server_addr.sin_addr.s_addr = inet_addr(ip.c_str()); // IP-адрес сервера
 
-  //const char *message = "Test, message!";
+  while (true) {
+    std::string message;
+    std::getline(std::cin, message);
 
-  while (true){
-  Sleep(10);
-  //char message[1024];
+    int s =
+        sendto(sockfd, message.c_str(), message.length() /*strlen(message)*/, 0,
+               (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-  //std::string message = "Привет, мир!";
+    std::cout << "Send " << std::to_string(s) << " bytes " << message << " to "
+              << NetHelper::SockaddrToString((sockaddr *)&server_addr)
+              << std::endl;
 
-  std::string message;
+    char buffer[1024];
 
-  //std::string message = "Привет, мир!";
+    // Ожидание ответа от сервера
+    int server_len = sizeof(server_addr);
+    int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+                     (struct sockaddr *)&server_addr, &server_len);
+    if (r >= 0) {
+      buffer[r /*server_len*/] = '\0'; // Завершение строки
+      std::cout << "Receive "
+                << std::to_string(r) /*<< "/" << std::to_string(server_len)*/
+                << " bytes"
+                << "message: " << buffer << " from "
+                << NetHelper::SockaddrToString((sockaddr *)&server_addr)
+                << std::endl;
+    }
 
-  //std::cin.getline(message, 1024);
-  std::cin >> message;
-  std::cout << message << std::endl;
-  //std::cout << (char*)u8"нопе" << std::endl;
-  //std::cout << "нопе" << std::endl;
-  
-  //std::string msg = WcharToUtf8(message);
-  
-  // Отправка сообщения серверу
-  //sendto(sockfd, message.c_str(), message.length()/*strlen(message)*/, 0, (struct sockaddr *)&server_addr,
-  //       sizeof(server_addr));
-         
-  //sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&server_addr,
-  //       sizeof(server_addr));       
-
-  //std::string msg = WcharToUtf8(message);
-
-  const char* msg = message.c_str();
-
-  sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr *)&server_addr,
-         sizeof(server_addr));    
-
-  char buffer[1024];
-
-  // Ожидание ответа от сервера
-  int server_len = sizeof(server_addr);
-  int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
-           (struct sockaddr *)&server_addr, &server_len);
-  if (n >= 0){
-  buffer[server_len] = '\0'; // Завершение строки
-  std::cout << "Receive " << std::to_string(n) << " bytes "
-            << buffer << ", from "
-            << NetHelper::SockaddrToString((sockaddr *)&server_addr)
-            << std::endl;
+    Sleep(10);
   }
-  //Sleep(10);
 
-  //sendto(sockfd, message.c_str(), message.length()/*strlen(message)*/, 0, (struct sockaddr *)&server_addr,
-  //       sizeof(server_addr));
-
-  }
-  
   closesocket(sockfd); // Закрытие сокета
   WSACleanup();        // Очистка Winsock
 }
 
 int main(int argc, char **argv) {
-  setlocale(LC_ALL, "ru_RU.UTF-8");
-  //SetConsoleCP(1251); // Установка кодовой страницы для ввода
-  //SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
+  // setlocale(LC_ALL, "ru_RU.UTF-8");
+  // SetConsoleCP(1251); // Установка кодовой страницы для ввода
+  // SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
   g_argc = argc;
   g_argv = argv;
 
