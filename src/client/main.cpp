@@ -83,6 +83,64 @@ void StartClient() {
   WSACleanup();        // Очистка Winsock
 }
 
+void Test() {
+  // Создаем строковый поток для записи
+  std::ostringstream oss(std::ios::binary);
+  // Пример данных для записи
+  int number = 42;
+  const char *text = "Hello";
+  std::string str = "world!";
+
+  // Записываем данные в поток
+  oss.write(reinterpret_cast<const char *>(&number),
+            sizeof(number)); // Запись целого числа
+  //oss << number;
+
+  int/*size_t*/ length = strlen(text); // Длина строки
+  oss << length;
+  //oss.write(reinterpret_cast<const char *>(&length),
+  //          sizeof(length)); // Запись длины строки
+  oss.write(text, length);   // Запись самой строки
+  //oss << text;
+
+
+  //length = str.length(); // Длина строки
+  //oss.write(reinterpret_cast<const char *>(&length),
+  //          sizeof(length));      // Запись длины строки
+  //oss.write(str.c_str(), length); // Запись самой строки
+  oss << str;
+
+  // Получаем строку из потока
+  std::string binaryData = oss.str();
+  
+  // Теперь читаем данные из строки
+    std::istringstream iss(binaryData, std::ios::binary);
+    
+    int readNumber;
+    char readText[100]; // Предполагаем, что текст не превышает 100 символов
+    std::string readStr;
+
+    // Читаем данные из потока
+    iss.read(reinterpret_cast<char*>(&readNumber), sizeof(readNumber)); // Чтение целого числа
+    //iss >> readNumber;
+    
+    int/*size_t*/ readLength;
+    iss >> readLength;
+    //iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); // Чтение длины строки
+    iss.read(readText, readLength); // Чтение самой строки
+    //iss >> readText;
+    readText[readLength] = '\0'; // Завершаем строку нулевым символом
+
+    //iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); // Чтение длины строки
+    iss >> readStr;
+
+    // Выводим прочитанные данные
+    std::cout << "number: " << readNumber << std::endl;
+    std::cout << "text: " << readText << std::endl;
+    std::cout << "str: " << readStr << std::endl;
+  
+}
+
 int main(int argc, char **argv) {
   // setlocale(LC_ALL, "ru_RU.UTF-8");
   // SetConsoleCP(1251); // Установка кодовой страницы для ввода
@@ -93,6 +151,8 @@ int main(int argc, char **argv) {
   InitCommandLineArgs();
 
   std::cout << "\tTest UDP Client" << std::endl;
+
+  Test();
 
   StartClient();
 
