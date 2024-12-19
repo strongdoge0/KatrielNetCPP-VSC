@@ -1,4 +1,15 @@
 // Класс для бинарной записи данных в поток
+/* Список поддерживаемых типов:
+    bool
+    char
+    short
+    unsigned short
+    int
+    unsigned int
+    float
+    const char*
+    std::string
+*/
 // Максимальный размер строк 255
 
 #pragma once

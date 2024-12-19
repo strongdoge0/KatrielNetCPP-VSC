@@ -32,6 +32,35 @@ void InitCommandLineArgs() {
   std::cout << FindArgumentInCommandLine("-password") << std::endl;*/
 }
 
+std::string GetData(std::vector<std::any> vector) {
+  MessageWriter writer = MessageWriter();
+  for (int i = 0; i < vector.size(); i++) {
+    if (vector[i].type() == typeid(int)) {
+      writer.Write(std::any_cast<int>(vector[i]));
+    } else if (vector[i].type() == typeid(float)) {
+      writer.Write(std::any_cast<float>(vector[i]));
+    } else if (vector[i].type() == typeid(char)) {
+      writer.Write(std::any_cast<char>(vector[i]));
+    } else if (vector[i].type() == typeid(const char *)) {
+      writer.Write(std::any_cast<const char *>(vector[i]));
+    } else if (vector[i].type() == typeid(std::string)) {
+      writer.Write(std::any_cast<std::string>(vector[i]));
+    }
+  }
+  return writer.GetData();
+}
+template <typename... T> std::string SendMessage(MessageFlag flag, T... args) {
+  // std::cout << "flag " << (int)flag << ": "; // std::endl;
+  std::vector<std::any> vector;
+  vector.push_back(flag);
+  (vector.push_back(std::forward<T>(args)), ...);
+  std::string data = GetData(vector);
+
+  // std::cout << data << std::endl; // std::endl;
+
+  return data;
+}
+
 void StartClient() {
   WSADATA wsaData;
   SOCKET sockfd;
@@ -52,9 +81,14 @@ void StartClient() {
     std::string message;
     std::getline(std::cin, message);
 
-    int s =
-        sendto(sockfd, message.c_str(), message.length() /*strlen(message)*/, 0,
-               (struct sockaddr *)&server_addr, sizeof(server_addr));
+    std::string msg = SendMessage(MessageFlag::Unreliable, message);
+
+    int s = sendto(sockfd, msg.c_str(), msg.length(), 0,
+                   (struct sockaddr *)&server_addr, sizeof(server_addr));
+
+    // int s = sendto(sockfd, message.c_str(), message.length()
+    // /*strlen(message)*/, 0,
+    //            (struct sockaddr *)&server_addr, sizeof(server_addr));
 
     std::cout << "Send " << std::to_string(s) << " bytes " << message << " to "
               << NetHelper::SockaddrToString((sockaddr *)&server_addr)
@@ -125,8 +159,8 @@ void Test() {
   std::string binaryData = writer.GetData();
 
   int readNumber;
-  char readText[255]; // Предполагаем, что текст не превышает 255 символов
-  // const char* readText;
+  // char readText[255]; // Предполагаем, что текст не превышает 255 символов
+  //  const char* readText;
   std::string readStr;
 
   /*
@@ -162,15 +196,15 @@ void Test() {
   /*for (int i = 0; i < sizeof(_readText) / sizeof(char); i++) {
     readText[i] = _readText[i];
   }*/
-  strcpy(readText, _readText);
-  
-  readStr = reader.ReadString();
+  // strcpy(readText, _readText);
+
+  // readStr = reader.ReadString();
 
   // Выводим прочитанные данные
   std::cout << "number: " << readNumber << std::endl;
   std::cout << "_text: " << _readText << std::endl;
-  std::cout << "text: " << readText << std::endl;
-  std::cout << "str from text: " << std::string(readText) << std::endl;
+  // std::cout << "text: " << readText << std::endl;
+  // std::cout << "str from text: " << std::string(readText) << std::endl;
   std::cout << "str: " << readStr << std::endl;
 }
 
@@ -185,7 +219,13 @@ int main(int argc, char **argv) {
 
   std::cout << "\tTest UDP Client" << std::endl;
 
-  Test();
+  // Test();
+
+  /*SendMessage(MessageFlag::None);
+  SendMessage(MessageFlag::Unreliable, 0);
+  SendMessage(MessageFlag::Reliable, 0, "Abc");
+  SendMessage(MessageFlag::Secure, 0, "Abc", 'b');
+  SendMessage(MessageFlag::Success, 0, "Abc", 'b', 9.9f);*/
 
   StartClient();
 

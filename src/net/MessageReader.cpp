@@ -54,17 +54,14 @@ float MessageReader::ReadSingle() {
 
 // utf8 char array string
 const char *MessageReader::ReadCString() {
-  char /*size_t*/ readLength = 0;
-  iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength));
+  char readLength = 0;
+  iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength)); // Чтение длины строки
   if (readLength > 0) {
-    //char readText[255];
-    char readText[readLength];
+    //char readText[readLength]; // так не работает без strcpy
+    char *readText = nullptr;
     iss.read(readText, readLength); // Чтение самой строки
-    readText[readLength] = '\0'; // Завершаем строку нулевым символом
+    // readText[readLength] = '\0'; // Завершаем строку нулевым символом
     return readText;
-    //const char *result;
-    //strcpy((char*)result, readText);
-    //return result;
   } else {
     return "";
   }
@@ -72,9 +69,8 @@ const char *MessageReader::ReadCString() {
 
 // utf8 string
 std::string MessageReader::ReadString() {
-  // return std::string(ReadCString());
-  char /*size_t*/ readLength = 0;
-  iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength)); //
+  /*char readLength = 0;
+  iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength));
   if (readLength > 0) {
     char readCStr[readLength];
     iss.read(readCStr, readLength);
@@ -82,5 +78,6 @@ std::string MessageReader::ReadString() {
     return std::string(readCStr);
   } else {
     return "";
-  }
+  }*/
+  return std::string(ReadCString());
 }

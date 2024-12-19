@@ -1,4 +1,15 @@
 // Класс для чтения бинарных данных из потока
+/* Список поддерживаемых типов:
+    bool
+    char
+    short
+    unsigned short
+    int
+    unsigned int
+    float
+    const char*
+    std::string
+*/
 // Максимальный размер строк 255
 
 #pragma once

@@ -9,9 +9,9 @@
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib")
 //#include <windows.h>
-#include "../net/NetHelper.hpp"
-#include "../net/MainServer.hpp"
-#include "../net/WebRequest.hpp"
+
+#define _SERVER
+#include "../net/KatrielNet.hpp"
 
 int g_argc;
 char **g_argv;
