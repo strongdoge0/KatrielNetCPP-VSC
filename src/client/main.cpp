@@ -84,19 +84,22 @@ void StartClient() {
 }
 
 void Test() {
-  // Создаем строковый поток для записи
-  std::ostringstream oss(std::ios::binary);
+
   // Пример данных для записи
   int number = 42;
   const char *text = "Hello";
   std::string str = "world!";
+
+  /*
+  // Создаем строковый поток для записи
+  std::ostringstream oss(std::ios::binary);
 
   // Записываем данные в поток
   oss.write(reinterpret_cast<const char *>(&number),
             sizeof(number)); // Запись целого числа
   //oss << number;
 
-  int/*size_t*/ length = strlen(text); // Длина строки
+  int *size_t* length = strlen(text); // Длина строки
   oss << length;
   //oss.write(reinterpret_cast<const char *>(&length),
   //          sizeof(length)); // Запись длины строки
@@ -112,33 +115,59 @@ void Test() {
 
   // Получаем строку из потока
   std::string binaryData = oss.str();
-  
+  */
+
+  MessageWriter writer = MessageWriter();
+  writer.Write(number);
+  writer.Write(text);
+  writer.Write(str);
+
+  std::string binaryData = writer.GetData();
+
+  int readNumber;
+  char readText[255]; // Предполагаем, что текст не превышает 255 символов
+  // const char* readText;
+  std::string readStr;
+
+  /*
   // Теперь читаем данные из строки
-    std::istringstream iss(binaryData, std::ios::binary);
-    
-    int readNumber;
-    char readText[100]; // Предполагаем, что текст не превышает 100 символов
-    std::string readStr;
+  std::istringstream iss(binaryData, std::ios::binary);
 
-    // Читаем данные из потока
-    iss.read(reinterpret_cast<char*>(&readNumber), sizeof(readNumber)); // Чтение целого числа
-    //iss >> readNumber;
-    
-    int/*size_t*/ readLength;
-    iss >> readLength;
-    //iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); // Чтение длины строки
-    iss.read(readText, readLength); // Чтение самой строки
-    //iss >> readText;
-    readText[readLength] = '\0'; // Завершаем строку нулевым символом
+  // Читаем данные из потока
+  iss.read(reinterpret_cast<char *>(&readNumber),
+           sizeof(readNumber)); // Чтение целого числа
+  // iss >> readNumber;
 
-    //iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); // Чтение длины строки
-    iss >> readStr;
+  char *size_t* readLength;
+  iss >> readLength;
+  // iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); //
+  // Чтение длины строки
+  iss.read(readText, readLength); // Чтение самой строки
+  // iss >> readText;
+  readText[readLength] = '\0'; // Завершаем строку нулевым символом
 
-    // Выводим прочитанные данные
-    std::cout << "number: " << readNumber << std::endl;
-    std::cout << "text: " << readText << std::endl;
-    std::cout << "str: " << readStr << std::endl;
-  
+  iss.read(reinterpret_cast<char*>(&readLength), sizeof(readLength)); //
+  // Чтение длины строки
+  //iss >> readStr;
+  char readCStr[readLength];
+  iss.read(readCStr, readLength);
+
+  readStr = std::string(readCStr);
+  */
+
+  MessageReader reader = MessageReader(binaryData);
+  readNumber = reader.ReadInt32();
+  const char *_t = reader.ReadCString();
+
+  for (int i = 0; i < sizeof(_t) / sizeof(char); i++) {
+    readText[i] = _t[i];
+  }
+  readStr = reader.ReadString();
+
+  // Выводим прочитанные данные
+  std::cout << "number: " << readNumber << std::endl;
+  std::cout << "text: " << std::string(readText) << std::endl;
+  std::cout << "str: " << readStr << std::endl;
 }
 
 int main(int argc, char **argv) {

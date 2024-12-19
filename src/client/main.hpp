@@ -13,6 +13,8 @@
 #include "../net/NetHelper.hpp"
 #include "../net/MainClient.hpp"
 #include "../net/WebRequest.hpp"
+#include "../net/MessageWriter.hpp"
+#include "../net/MessageReader.hpp"
 
 int g_argc;
 char **g_argv;
