@@ -157,16 +157,20 @@ void Test() {
 
   MessageReader reader = MessageReader(binaryData);
   readNumber = reader.ReadInt32();
-  const char *_t = reader.ReadCString();
+  const char *_readText = reader.ReadCString();
 
-  for (int i = 0; i < sizeof(_t) / sizeof(char); i++) {
-    readText[i] = _t[i];
-  }
+  /*for (int i = 0; i < sizeof(_readText) / sizeof(char); i++) {
+    readText[i] = _readText[i];
+  }*/
+  strcpy(readText, _readText);
+  
   readStr = reader.ReadString();
 
   // Выводим прочитанные данные
   std::cout << "number: " << readNumber << std::endl;
-  std::cout << "text: " << std::string(readText) << std::endl;
+  std::cout << "_text: " << _readText << std::endl;
+  std::cout << "text: " << readText << std::endl;
+  std::cout << "str from text: " << std::string(readText) << std::endl;
   std::cout << "str: " << readStr << std::endl;
 }
 

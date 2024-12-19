@@ -60,8 +60,11 @@ const char *MessageReader::ReadCString() {
     //char readText[255];
     char readText[readLength];
     iss.read(readText, readLength); // Чтение самой строки
-    //readText[readLength] = '\0'; // Завершаем строку нулевым символом
+    readText[readLength] = '\0'; // Завершаем строку нулевым символом
     return readText;
+    //const char *result;
+    //strcpy((char*)result, readText);
+    //return result;
   } else {
     return "";
   }
