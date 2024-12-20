@@ -12,7 +12,7 @@ bool MessageReader::ReadBoolean() {
 
 // 1 byte
 char MessageReader::ReadChar() {
-  bool result;
+  char result;
   iss.read(reinterpret_cast<char *>(&result), sizeof(result));
   return result;
 }
@@ -58,9 +58,10 @@ const char *MessageReader::ReadCString() {
   iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength)); // Чтение длины строки
   if (readLength > 0) {
     //char readText[readLength]; // так не работает без strcpy
-    char *readText = nullptr;
+    //std::cout << "read cStr " << (int)readLength << std::endl;
+    char *readText = new char[readLength];
     iss.read(readText, readLength); // Чтение самой строки
-    // readText[readLength] = '\0'; // Завершаем строку нулевым символом
+    readText[readLength] = '\0'; // Завершаем строку нулевым символом
     return readText;
   } else {
     return "";
@@ -72,12 +73,17 @@ std::string MessageReader::ReadString() {
   /*char readLength = 0;
   iss.read(reinterpret_cast<char *>(&readLength), sizeof(readLength));
   if (readLength > 0) {
+    std::cout << "read str " << (int)readLength << std::endl;
     char readCStr[readLength];
     iss.read(readCStr, readLength);
-
+    readCStr[readLength] = '\0';
     return std::string(readCStr);
   } else {
     return "";
   }*/
   return std::string(ReadCString());
+}
+
+std::string MessageReader::GetData() {
+  return iss.str();
 }

@@ -43,6 +43,8 @@ void StartServer() {
   SOCKET sockfd;
   struct sockaddr_in server_addr, client_addr;
   char buffer[1024];
+  int bufferSize = 1024; // + 1;
+  // char *buffer = new char[bufferSize];
   int client_len = sizeof(client_addr);
 
   // Инициализация Winsock
@@ -63,23 +65,60 @@ void StartServer() {
 
   while (true) {
     // Прием данных от клиента
-    int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+    int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
                      (struct sockaddr *)&client_addr, &client_len);
-    buffer[n] = '\0'; // Завершение строки
-    
-    if (n >= 0) {
-      std::cout << "Receive " << std::to_string(n) << " bytes"
+    buffer[r] = '\0'; // Завершение строки
+
+    // int r = recvfrom(sockfd, buffer, bufferSize, 0,
+    //                  (struct sockaddr *)&client_addr, &client_len);
+    // buffer[r] = '\0'; // Завершение строки
+
+    if (r >= 0) {
+
+      for (int i = 0; i < r; i++) {
+        std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
+                  << +buffer[i] << std::endl;
+      }
+      std::cout << std::endl;
+      MessageReader reader = MessageReader(std::string(buffer));
+
+      std::string testData = reader.GetData();
+
+      for (int i = 0; i < testData.length(); i++) {
+        std::cout << "data " << std::to_string(i) << " = " << testData[i] << "|"
+                  << +testData[i] << std::endl;
+      }
+      std::cout << std::endl;
+      char flag = reader.ReadChar();
+      unsigned char type = reader.ReadUInt16();
+      /*std::cout << "Receive " << std::to_string(r) << " bytes"
                 << " message: " << buffer
-                << " from " << NetHelper::SockaddrToString((sockaddr *)&client_addr)
+                << " from " << NetHelper::SockaddrToString((sockaddr
+         *)&client_addr)
+                << std::endl;*/
+
+      std::cout << "Receive " << std::to_string(r) << " bytes"
+                << " flag " << (int)flag << " type " << (int)type << " from "
+                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
 
+      if ((MessageType)type == MessageType::Chat) {
+        const char *msg = reader.ReadCString();
+        std::string str = reader.ReadString();
+        std::cout << " msg: " << msg << std::endl;
+        std::cout << " str: " << str << std::endl;
+        std::cout << " data: " << buffer << std::endl;
+      }
+
       // Отправка ответа клиенту обратно его же сообщения
-      int s = sendto(sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, client_len);
+      int s = sendto(sockfd, buffer, r, 0, (struct sockaddr *)&client_addr,
+                     client_len);
       std::cout << "Send " << std::to_string(s) << " bytes"
-                << " to " << NetHelper::SockaddrToString((sockaddr *)&client_addr)
+                << " to "
+                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
     }
-    
+
     Sleep(10);
   }
 
@@ -88,9 +127,9 @@ void StartServer() {
 }
 
 int main(int argc, char **argv) {
-  //setlocale(LC_ALL, "ru_RU.UTF-8");
-  //SetConsoleCP(1251); // Установка кодовой страницы для ввода
-  //SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
+  // setlocale(LC_ALL, "ru_RU.UTF-8");
+  // SetConsoleCP(1251); // Установка кодовой страницы для ввода
+  // SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода
   g_argc = argc;
   g_argv = argv;
 

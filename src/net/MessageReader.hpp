@@ -32,6 +32,8 @@ class MessageReader{
     const char* ReadCString(); // utf8 char array string
     std::string ReadString(); // utf8 string
     
+    std::string GetData();
+    
     private:
     std::istringstream iss;
 };

@@ -10,7 +10,9 @@ void MessageWriter::Write(bool value) {
 
 // 1 byte
 void MessageWriter::Write(char value) {
-  oss.write(&value, sizeof(value));
+  //oss.write(&value, sizeof(value));
+  oss.write(reinterpret_cast<const char *>(&value),
+            sizeof(value));
 }
 
 // 2 byte
@@ -49,6 +51,7 @@ void MessageWriter::Write(const char *value) {
     throw std::exception("MessageWriter error: string size > 255");
   }
   char length = strlen(value); // Получаем длину строки
+  //oss << length;
   oss.write(reinterpret_cast<const char *>(&length),
             sizeof(length)); // Запись длины строки
   oss.write(value, length);  // Запись самой строки
