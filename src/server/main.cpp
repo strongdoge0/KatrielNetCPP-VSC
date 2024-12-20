@@ -42,6 +42,7 @@ void StartServer() {
   WSADATA wsaData;
   SOCKET sockfd;
   struct sockaddr_in server_addr, client_addr;
+
   //char buffer[1024];
   int bufferSize = 1024; // + 1;
   char *buffer = new char[bufferSize];

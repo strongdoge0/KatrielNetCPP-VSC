@@ -8,6 +8,8 @@
 #include "../net/MessageReader.hpp"
 #include "../net/MessageFlag.hpp"
 #include "../net/MessageType.hpp"
+#include "../net/LogType.hpp"
+#include "../net/ConnectionState.hpp"
 
 #if defined(_SERVER)
     #include "MainServer.hpp"
