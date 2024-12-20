@@ -152,13 +152,17 @@ void StartClient() {
                 << NetHelper::SockaddrToString((sockaddr *)&server_addr)
                 << std::endl;*/
 
+      std::string data;
+      data.assign(buffer, r);
+
       for (int i = 0; i < r; i++) {
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
       std::cout << std::endl;
 
-      MessageReader reader = MessageReader(std::string(buffer));
+      //MessageReader reader = MessageReader(std::string(buffer)); // не будет работать, так как бинарные данные нельзя записать в текст
+      MessageReader reader = MessageReader(data);
 
       std::string testData = reader.GetData();
 

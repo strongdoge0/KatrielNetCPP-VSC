@@ -42,9 +42,9 @@ void StartServer() {
   WSADATA wsaData;
   SOCKET sockfd;
   struct sockaddr_in server_addr, client_addr;
-  char buffer[1024];
+  //char buffer[1024];
   int bufferSize = 1024; // + 1;
-  // char *buffer = new char[bufferSize];
+  char *buffer = new char[bufferSize];
   int client_len = sizeof(client_addr);
 
   // Инициализация Winsock
@@ -65,23 +65,28 @@ void StartServer() {
 
   while (true) {
     // Прием данных от клиента
-    int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
-                     (struct sockaddr *)&client_addr, &client_len);
-    buffer[r] = '\0'; // Завершение строки
+    //int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+    //                 (struct sockaddr *)&client_addr, &client_len);
+    //buffer[r] = '\0'; // Завершение строки
 
-    // int r = recvfrom(sockfd, buffer, bufferSize, 0,
-    //                  (struct sockaddr *)&client_addr, &client_len);
-    // buffer[r] = '\0'; // Завершение строки
+     int r = recvfrom(sockfd, buffer, bufferSize, 0,
+                      (struct sockaddr *)&client_addr, &client_len);
+     //buffer[r] = '\0'; // Завершение строки, ничего не даст, так как данные бинарные
 
     if (r >= 0) {
 
+      std::string data;
+      data.assign(buffer, r);
+
       for (int i = 0; i < r; i++) {
+        //data.push_back(buffer[i]);
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
       std::cout << std::endl;
-      MessageReader reader = MessageReader(std::string(buffer));
-
+      //MessageReader reader = MessageReader(std::string(buffer));  // не будет работать, так как бинарные данные нельзя записать в текст
+      MessageReader reader = MessageReader(data);
+      
       std::string testData = reader.GetData();
 
       for (int i = 0; i < testData.length(); i++) {
