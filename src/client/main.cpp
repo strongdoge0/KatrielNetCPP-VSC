@@ -196,7 +196,7 @@ void StartClient() {
         std::string str = reader.ReadString();
         std::cout << " msg: " << msg << std::endl;
         std::cout << " str: " << str << std::endl;
-        std::cout << " data: " << buffer << std::endl;
+        //std::cout << " data: " << buffer << std::endl;
       }
     }
 
