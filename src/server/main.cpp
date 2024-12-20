@@ -78,22 +78,24 @@ void StartServer() {
       std::string data;
       data.assign(buffer, r);
 
-      for (int i = 0; i < r; i++) {
+      /*for (int i = 0; i < r; i++) {
         //data.push_back(buffer[i]);
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
-      std::cout << std::endl;
+      std::cout << std::endl;*/
+      
       //MessageReader reader = MessageReader(std::string(buffer));  // не будет работать, так как бинарные данные нельзя записать в текст
       MessageReader reader = MessageReader(data);
       
       std::string testData = reader.GetData();
 
-      for (int i = 0; i < testData.length(); i++) {
+      /*for (int i = 0; i < testData.length(); i++) {
         std::cout << "data " << std::to_string(i) << " = " << testData[i] << "|"
                   << +testData[i] << std::endl;
       }
-      std::cout << std::endl;
+      std::cout << std::endl;*/
+      
       char flag = reader.ReadChar();
       unsigned char type = reader.ReadUInt16();
       /*std::cout << "Receive " << std::to_string(r) << " bytes"

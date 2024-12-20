@@ -68,7 +68,7 @@ std::string SendMessageTo(MessageFlag flag, T... args) {
   std::string data = GetData(vector);
 
   // Test
-  try {
+  /*try {
 
     for (int i = 0; i < data.length(); i++) {
       std::cout << "byte " << std::to_string(i) << " = " << data[i] << "|"
@@ -97,7 +97,7 @@ std::string SendMessageTo(MessageFlag flag, T... args) {
     // std::cout << data << std::endl;
   } catch (std::exception e) {
     std::cout << e.what() << std::endl;
-  }
+  }*/
   return data;
 }
 
@@ -136,13 +136,18 @@ void StartClient() {
               << NetHelper::SockaddrToString((sockaddr *)&server_addr)
               << std::endl;
 
-    char buffer[1024];
+    // char buffer[1024];
+    int bufferSize = 1024; // + 1;
+    char *buffer = new char[bufferSize];
 
     // Ожидание ответа от сервера
     int server_len = sizeof(server_addr);
-    int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+    // int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+    //                  (struct sockaddr *)&server_addr, &server_len);
+    int r = recvfrom(sockfd, buffer, bufferSize, 0,
                      (struct sockaddr *)&server_addr, &server_len);
-    buffer[r] = '\0'; // Завершение строки
+    // buffer[r] = '\0'; // Завершение строки, ничего не даст, так как данные
+    // бинарные
 
     if (r >= 0) {
       /*std::cout << "Receive "
@@ -155,22 +160,23 @@ void StartClient() {
       std::string data;
       data.assign(buffer, r);
 
-      for (int i = 0; i < r; i++) {
+      /*for (int i = 0; i < r; i++) {
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
-      std::cout << std::endl;
+      std::cout << std::endl;*/
 
-      //MessageReader reader = MessageReader(std::string(buffer)); // не будет работать, так как бинарные данные нельзя записать в текст
+      // MessageReader reader = MessageReader(std::string(buffer)); // не будет
+      // работать, так как бинарные данные нельзя записать в текст
       MessageReader reader = MessageReader(data);
 
       std::string testData = reader.GetData();
 
-      for (int i = 0; i < testData.length(); i++) {
+      /*for (int i = 0; i < testData.length(); i++) {
         std::cout << "data " << std::to_string(i) << " = " << testData[i] << "|"
                   << +testData[i] << std::endl;
       }
-      std::cout << std::endl;
+      std::cout << std::endl;*/
 
       char flag = reader.ReadChar();
       unsigned char type = reader.ReadUInt16();
