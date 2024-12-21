@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
 
   InitCommandLineArgs();
 
-  std::cout << "\tTest UDP Server" << std::endl;
+  std::cout << "\tKatriel's UDP Server++" << std::endl;
 
   //StartServer();
   

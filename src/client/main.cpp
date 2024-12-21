@@ -32,6 +32,14 @@ void InitCommandLineArgs() {
   std::cout << FindArgumentInCommandLine("-password") << std::endl;*/
 }
 
+std::string GetHeader(unsigned short size, char id, MessageFlag flag){
+  MessageWriter writer = MessageWriter();
+  writer.Write(size);
+  writer.Write(id);
+  writer.Write((char)flag);
+  return writer.GetData();
+}
+
 std::string GetData(std::vector<std::any> vector) {
   MessageWriter writer = MessageWriter();
   for (int i = 0; i < vector.size(); i++) {
@@ -63,9 +71,15 @@ template <typename... T>
 std::string SendMessageTo(MessageFlag flag, T... args) {
   // std::cout << "flag " << (int)flag << ": "; // std::endl;
   std::vector<std::any> vector;
-  vector.push_back((char)flag);
+  //unsigned short size = 0;
+  //vector.push_back((unsigned short)size);
+  //char id = 0;
+  //vector.push_back((char)id);
+  //vector.push_back((char)flag);
   (vector.push_back(std::forward<T>(args)), ...);
   std::string data = GetData(vector);
+
+  std::string header = GetHeader(data.length(), 0, flag);
 
   // Test
   /*try {
@@ -98,7 +112,7 @@ std::string SendMessageTo(MessageFlag flag, T... args) {
   } catch (std::exception e) {
     std::cout << e.what() << std::endl;
   }*/
-  return data;
+  return header+data;
 }
 
 void StartClient() {
@@ -135,6 +149,8 @@ void StartClient() {
     std::cout << "Send " << std::to_string(s) << " bytes " << message << " to "
               << NetHelper::SockaddrToString((sockaddr *)&server_addr)
               << std::endl;
+
+    continue;
 
     // char buffer[1024];
     int bufferSize = 1024; // + 1;

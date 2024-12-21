@@ -69,14 +69,29 @@ void MainServer::ListenCallback() {
 void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
 
   MessageReader reader = MessageReader(data);
-
+  unsigned short size = reader.ReadUInt16();
+  char id = reader.ReadChar();
   char flag = reader.ReadChar();
-  unsigned char type = reader.ReadUInt16();
 
-  std::cout << "Receive " << (int)data.length() << " bytes"
-            << " flag " << (int)flag << " type " << (int)type << " from "
-            << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;
+  std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
+            << " id " << (int)id
+            << " flag " << NetHelper::MessageFlagToString(flag) //<< " type "
+            //<< NetHelper::MessageTypeToString(type)
+            << " received "
+            << (int)data.length() << " bytes" << std::endl;
 
+  /*std::cout << "Receive " << (int)data.length() << " bytes"
+            << " flag " << NetHelper::MessageFlagToString(flag) << " type "
+            << NetHelper::MessageTypeToString(type) << " from "
+            << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
+
+  if ((MessageFlag)flag == MessageFlag::Accept) {
+    
+  }
+
+
+  unsigned short type = reader.ReadUInt16();
+  
   if ((MessageType)type == MessageType::Chat) {
     const char *msg = reader.ReadCString();
     std::string str = reader.ReadString();
