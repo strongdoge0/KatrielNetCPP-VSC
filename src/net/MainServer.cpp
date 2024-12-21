@@ -10,7 +10,7 @@ bool MainServer::Listen(int port) {
   _port = port;
 
   // Инициализация Winsock
-  WSAStartup(MAKEWORD(2, 2), wsaData);
+  WSAStartup(MAKEWORD(2, 2), &wsaData);
 
   // Создание UDP сокета
   _serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -20,14 +20,15 @@ bool MainServer::Listen(int port) {
     return false;
   }
 
-  _serverAddr = new struct sockaddr_in();
+  //_serverAddr = new struct sockaddr_in();
+  memset(&_serverAddr, 0, sizeof(_serverAddr));
   // Заполнение структуры адреса сервера
-  _serverAddr->sin_family = AF_INET;
-  _serverAddr->sin_addr.s_addr = INADDR_ANY; // Принимаем данные с любого IP
-  _serverAddr->sin_port = htons(port); // Порт сервера
+  _serverAddr.sin_family = AF_INET;
+  _serverAddr.sin_addr.s_addr = INADDR_ANY; // Принимаем данные с любого IP
+  _serverAddr.sin_port = htons(port); // Порт сервера
 
   // Привязка сокета к адресу
-  if (bind(_serverSocket, (struct sockaddr *)_serverAddr,
+  if (bind(_serverSocket, (struct sockaddr *)&_serverAddr,
            sizeof(_serverAddr)) == -1) {
     std::cout << "Listen error: unable to bind socket" << std::endl;
     return false;
@@ -35,16 +36,52 @@ bool MainServer::Listen(int port) {
 
   _listening = true;
   listenCallbackThread =
-      new std::thread(std::bind(&MainServer::ListenCallback, this));
+      std::thread(std::bind(&MainServer::ListenCallback, this));
 
   return true;
 }
 
 void MainServer::ListenCallback() {
   std::cout << "UDP server start listening at "
-            << NetHelper::SockaddrToString(_serverAddr) << std::endl;
+            << NetHelper::SockaddrToString(&_serverAddr) << std::endl;
   while (_listening) {
-    
+    struct sockaddr_in client_addr;
+    char *buffer = new char[ConnectionState::bufferSize];
+    int client_len = sizeof(client_addr);
+
+    int bytesRead = recvfrom(_serverSocket, buffer, ConnectionState::bufferSize,
+                             0, (struct sockaddr *)&client_addr, &client_len);
+
+    if (bytesRead >= 0) {
+      std::string data;
+      data.assign(buffer, bytesRead);
+
+      ReadCallback(&client_addr, data);
+
+    } else {
+      std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
+                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
+                << std::endl;
+    }
+  }
+}
+
+void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
+
+  MessageReader reader = MessageReader(data);
+
+  char flag = reader.ReadChar();
+  unsigned char type = reader.ReadUInt16();
+
+  std::cout << "Receive " << (int)data.length() << " bytes"
+            << " flag " << (int)flag << " type " << (int)type << " from "
+            << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;
+
+  if ((MessageType)type == MessageType::Chat) {
+    const char *msg = reader.ReadCString();
+    std::string str = reader.ReadString();
+    std::cout << " msg: " << msg << std::endl;
+    std::cout << " str: " << str << std::endl;
   }
 }
 

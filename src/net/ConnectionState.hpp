@@ -8,9 +8,10 @@
 
 class ConnectionState{
     public:
-    ConnectionState(const sockaddr *client_addr);
+    ConnectionState(struct sockaddr_in *client_addr);
+    static const int bufferSize;
     
     private:
-    const sockaddr *_addr;
-    
+    struct sockaddr_in _addr;
+
 };
