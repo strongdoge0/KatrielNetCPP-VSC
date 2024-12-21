@@ -145,7 +145,10 @@ int main(int argc, char **argv) {
 
   std::cout << "\tTest UDP Server" << std::endl;
 
-  StartServer();
+  //StartServer();
+  
+  server = new MainServer();
+  server->Listen(port);
 
   /*server = new MainClient();
   server->Connect(ip, port);*/

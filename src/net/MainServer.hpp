@@ -35,8 +35,9 @@ private:
     int _port;
     bool _listening;
     std::thread *listenCallbackThread;
-    SOCKET *_sockfd = nullptr;
-    const sockaddr *_server_addr = nullptr;
+    WSADATA *wsaData;
+    SOCKET _serverSocket;
+    struct sockaddr_in *_serverAddr = nullptr;
     
     void Log(std::string message, LogType logType = LogType::Default);
     //byte[] GetBytes(params object[] args)

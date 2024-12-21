@@ -9,5 +9,5 @@
 class NetHelper {
 public:
   static std::string SockaddrToString(const sockaddr *addr);
-  
+  static std::string SockaddrToString(struct sockaddr_in *addr_in);
 };
