@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
 
   InitCommandLineArgs();
 
-  std::cout << "\tTest UDP Client" << std::endl;
+  std::cout << "\tKatriel's UDP Client++" << std::endl;
 
   // Test();
 
