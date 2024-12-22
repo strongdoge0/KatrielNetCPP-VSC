@@ -156,21 +156,6 @@ int main(int argc, char **argv) {
   g_argc = argc;
   g_argv = argv;
 
-  std::string key = "1234567890123456"; // 128 byte, 16 * 8
-  std::string plainText = "Hi, this is test!"; 
-  
-  struct AES_ctx ctx;
-  AES_init_ctx(&ctx, (uint8_t*)key.c_str());
-
-  // Шифрование
-  AES_ECB_encrypt(&ctx, (uint8_t*)plainText.c_str());
-  std::cout << "Encrypted: " << plainText << std::endl;
-
-  uint8_t decrypted[16];
-  AES_ECB_decrypt(&ctx, decrypted);
-  std::cout << "Decrypted: " << std::string((char*)decrypted)<< std::endl;
-
-
   InitCommandLineArgs();
 
   std::cout << "\tKatriel's UDP Server++" << std::endl;
