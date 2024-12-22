@@ -82,7 +82,7 @@ void MainServer::ListenCallback() {
       /*std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;*/
-      Log("Log: From " + NetHelper::SockaddrToString(&_serverAddr) +
+      Log("Log: From " + NetHelper::SockaddrToString(&client_addr) +
           " received " + std::to_string(bytesRead) + " bytes");
     }
   }
@@ -91,9 +91,23 @@ void MainServer::ListenCallback() {
 void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
 
   MessageReader reader = MessageReader(data);
-  unsigned short size = reader.ReadUInt16();
+  // unsigned short size = reader.ReadUInt16();
   char id = reader.ReadChar();
   char flag = reader.ReadChar();
+
+  if (_connectionStates.count(addr) > 0) {
+    ConnectionState *connectionState = _connectionStates[addr];
+    //Log("Connection exists, nope");
+  } else {
+    ConnectionState *connectionState = new ConnectionState(addr);
+    _connectionStates[addr] = connectionState;
+    //Log("New connection, added to map");
+    _eventDispatcher.Add([connectionState, this]() {
+    if (OnConnectCallback) {
+      OnConnectCallback(connectionState);
+    }
+  });
+  }
 
   /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
             << " id " << (int)id << " flag "
@@ -101,7 +115,7 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
             //<< NetHelper::MessageTypeToString(type)
             << " received " << (int)data.length() << " bytes" << std::endl;*/
 
-  Log("Log: From " + NetHelper::SockaddrToString(&_serverAddr) + " id " +
+  Log("Log: From " + NetHelper::SockaddrToString(addr) + " id " +
       std::to_string((int)id) + " flag " +
       NetHelper::MessageFlagToString(flag) + " received " +
       std::to_string((int)data.length()) + " bytes");
@@ -111,18 +125,12 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
             << NetHelper::MessageTypeToString(type) << " from "
             << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
 
-  auto conn = _connectionStates.find(addr);
-  if (conn != _connectionStates.end()) {
-    ConnectionState *connectionState = conn->second;
-    Log("Connection exists, nope");
-  } else {
-    ConnectionState *connectionState = new ConnectionState(addr);
-    _connectionStates[addr] = connectionState;
-    Log("New connection, added to map");
-  }
+  // auto conn = _connectionStates.find(addr);
+  // if (conn != _connectionStates.end()) {
+  //   ConnectionState *connectionState = conn->second;
 
   /*if ((MessageFlag)flag == MessageFlag::Accept) {
-    
+
   }*/
 
   unsigned short type = reader.ReadUInt16();

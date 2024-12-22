@@ -5,3 +5,7 @@ const int ConnectionState::bufferSize = 1024;
 ConnectionState::ConnectionState(struct sockaddr_in *addr){
     _addr = *addr;
 }
+
+struct sockaddr_in *ConnectionState::GetSockaddr(){
+    return &_addr;
+}

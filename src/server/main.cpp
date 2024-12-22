@@ -141,6 +141,10 @@ void OnLogCallback(std::string message, LogType logType) {
   std::cout << message << std::endl;
 }
 
+void OnConnectCallback(ConnectionState *connectionState) {
+  std::cout << "New connection " << NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
+}
+
 void UpdateCallback() {
   while (server->IsActive()) {
     server->PollEvents();
@@ -164,6 +168,7 @@ int main(int argc, char **argv) {
 
   server = new MainServer();
   server->OnLogCallback = OnLogCallback;
+  server->OnConnectCallback = OnConnectCallback;
   server->Listen(port);
 
   updateCallbackThread = std::thread(UpdateCallback);

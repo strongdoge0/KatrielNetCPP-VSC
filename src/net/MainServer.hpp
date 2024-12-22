@@ -23,9 +23,9 @@ public:
     void (*OnStopCallback)() = nullptr;
     void (*OnCloseCallback)() = nullptr;
     //void (*OnAcceptCallback)(IPEndPoint endPoint, std::string key) = nullptr;
-    void (*OnConnectCallback)(ConnectionState connectionState) = nullptr;
-    void (*OnDisconnectCallback)(ConnectionState connectionState) = nullptr;
-    void (*OnReceiveCallback)(ConnectionState connectionState, std::string data) = nullptr;
+    void (*OnConnectCallback)(ConnectionState *connectionState) = nullptr;
+    void (*OnDisconnectCallback)(ConnectionState *connectionState) = nullptr;
+    void (*OnReceiveCallback)(ConnectionState *connectionState, std::string *data) = nullptr;
     
     bool IsListening();
     bool IsActive();

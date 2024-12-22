@@ -10,6 +10,7 @@ class ConnectionState{
     public:
     ConnectionState(struct sockaddr_in *client_addr);
     static const int bufferSize;
+    struct sockaddr_in *GetSockaddr();
     
     private:
     struct sockaddr_in _addr;

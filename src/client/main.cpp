@@ -34,7 +34,7 @@ void InitCommandLineArgs() {
 
 std::string GetHeader(unsigned short size, char id, MessageFlag flag){
   MessageWriter writer = MessageWriter();
-  writer.Write(size);
+  //writer.Write(size);
   writer.Write(id);
   writer.Write((char)flag);
   return writer.GetData();
