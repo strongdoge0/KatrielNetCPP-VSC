@@ -7,8 +7,9 @@
 #include <vector>
 #include <functional>
 #include <mutex>
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#include <ctime>
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib")
 
@@ -50,7 +51,7 @@ private:
     std::unordered_map<struct sockaddr_in*, ConnectionState*> _connectionStates;
     std::mutex _connectionStatesLock;
     
-    void Log(std::string message, LogType logType = LogType::Default);
+    void Log(std::string message, LogType logType = LogType::Log);
     void ReadCallback(struct sockaddr_in *addr, std::string data);
     //byte[] GetBytes(params object[] args)
     //bool UpdateConnectionState(ConnectionState connectionState);

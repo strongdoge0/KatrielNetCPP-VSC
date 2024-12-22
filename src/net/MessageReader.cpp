@@ -61,7 +61,7 @@ const char *MessageReader::ReadCString() {
     //std::cout << "read cStr " << (int)readLength << std::endl;
     char *readText = new char[readLength];
     iss.read(readText, readLength); // Чтение самой строки
-    readText[readLength] = '\0'; // Завершаем строку нулевым символом
+    readText[(int)readLength] = '\0'; // Завершаем строку нулевым символом
     return readText;
   } else {
     return "";

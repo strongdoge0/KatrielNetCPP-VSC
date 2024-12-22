@@ -10,11 +10,15 @@ bool MainServer::IsActive() {
 }
 
 void MainServer::Log(std::string message, LogType logType) {
-  /*std::lock_guard<std::mutex> guard(_eventsLock);
-  _events.push_back(
-      [message]() { std::cout << "Action Log: " << message << std::endl; });*/
-  /*_eventDispatcher.Add(
-      [message]() { std::cout << "Action Log: " << message << std::endl; });*/
+  //"hh:mm:ss"
+  std::time_t now = std::time(0);
+  std::tm *localTime = std::localtime(&now);
+  std::string prefix = "[" + std::to_string(localTime->tm_hour) + ":" +
+                       std::to_string(localTime->tm_min) + ":" +
+                       std::to_string(localTime->tm_sec) + "] " +
+                       NetHelper::LogTypeToString((char)logType) + ": ";
+  message = prefix + message;
+
   _eventDispatcher.Add([message, logType, this]() {
     if (OnLogCallback) {
       OnLogCallback(message, logType);
@@ -82,8 +86,8 @@ void MainServer::ListenCallback() {
       /*std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;*/
-      Log("Log: From " + NetHelper::SockaddrToString(&client_addr) +
-          " received " + std::to_string(bytesRead) + " bytes");
+      Log("From " + NetHelper::SockaddrToString(&client_addr) + " received " +
+          std::to_string(bytesRead) + " bytes");
     }
   }
 }
@@ -97,16 +101,16 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
 
   if (_connectionStates.count(addr) > 0) {
     ConnectionState *connectionState = _connectionStates[addr];
-    //Log("Connection exists, nope");
+    // Log("Connection exists, nope");
   } else {
     ConnectionState *connectionState = new ConnectionState(addr);
     _connectionStates[addr] = connectionState;
-    //Log("New connection, added to map");
+    // Log("New connection, added to map");
     _eventDispatcher.Add([connectionState, this]() {
-    if (OnConnectCallback) {
-      OnConnectCallback(connectionState);
-    }
-  });
+      if (OnConnectCallback) {
+        OnConnectCallback(connectionState);
+      }
+    });
   }
 
   /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
@@ -115,7 +119,7 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
             //<< NetHelper::MessageTypeToString(type)
             << " received " << (int)data.length() << " bytes" << std::endl;*/
 
-  Log("Log: From " + NetHelper::SockaddrToString(addr) + " id " +
+  Log("From " + NetHelper::SockaddrToString(addr) + " id " +
       std::to_string((int)id) + " flag " +
       NetHelper::MessageFlagToString(flag) + " received " +
       std::to_string((int)data.length()) + " bytes");

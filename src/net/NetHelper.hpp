@@ -14,4 +14,5 @@ public:
   static std::string SockaddrToString(struct sockaddr_in *addr_in);
   static std::string MessageFlagToString(char flag);
   static std::string MessageTypeToString(unsigned short type);
+  static std::string LogTypeToString(char type);
 };

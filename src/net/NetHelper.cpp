@@ -46,3 +46,17 @@ std::string NetHelper::MessageTypeToString(unsigned short type) {
   }
   return result;
 }
+
+std::string NetHelper::LogTypeToString(char type) {
+  std::string result = std::to_string((int)type);
+  if ((LogType)type == LogType::Log) {
+    result = "Log";
+  } else if ((LogType)type == LogType::Info) {
+    result = "Info";
+  } else if ((LogType)type == LogType::Warning) {
+    result = "Warning";
+  } else if ((LogType)type == LogType::Error) {
+    result = "Error";
+  }
+  return result;
+}

@@ -1,4 +1,4 @@
-#include "ConnectionState.hpp";
+#include "ConnectionState.hpp"
 
 const int ConnectionState::bufferSize = 1024;
 
