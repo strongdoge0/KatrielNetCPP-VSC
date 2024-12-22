@@ -13,5 +13,7 @@
 #define _SERVER
 #include "../net/KatrielNet.hpp"
 
+#include <tiny-AES-c/aes.h>
+
 int g_argc;
 char **g_argv;

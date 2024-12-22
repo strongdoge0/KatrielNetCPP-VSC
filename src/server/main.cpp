@@ -44,7 +44,7 @@ void StartServer() {
   SOCKET sockfd;
   struct sockaddr_in server_addr, client_addr;
 
-  //char buffer[1024];
+  // char buffer[1024];
   int bufferSize = 1024; // + 1;
   char *buffer = new char[bufferSize];
   int client_len = sizeof(client_addr);
@@ -67,13 +67,14 @@ void StartServer() {
 
   while (true) {
     // Прием данных от клиента
-    //int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+    // int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
     //                 (struct sockaddr *)&client_addr, &client_len);
-    //buffer[r] = '\0'; // Завершение строки
+    // buffer[r] = '\0'; // Завершение строки
 
-     int r = recvfrom(sockfd, buffer, bufferSize, 0,
-                      (struct sockaddr *)&client_addr, &client_len);
-     //buffer[r] = '\0'; // Завершение строки, ничего не даст, так как данные бинарные
+    int r = recvfrom(sockfd, buffer, bufferSize, 0,
+                     (struct sockaddr *)&client_addr, &client_len);
+    // buffer[r] = '\0'; // Завершение строки, ничего не даст, так как данные
+    // бинарные
 
     if (r >= 0) {
 
@@ -86,10 +87,11 @@ void StartServer() {
                   << +buffer[i] << std::endl;
       }
       std::cout << std::endl;*/
-      
-      //MessageReader reader = MessageReader(std::string(buffer));  // не будет работать, так как бинарные данные нельзя записать в текст
+
+      // MessageReader reader = MessageReader(std::string(buffer));  // не будет
+      // работать, так как бинарные данные нельзя записать в текст
       MessageReader reader = MessageReader(data);
-      
+
       std::string testData = reader.GetData();
 
       /*for (int i = 0; i < testData.length(); i++) {
@@ -97,7 +99,7 @@ void StartServer() {
                   << +testData[i] << std::endl;
       }
       std::cout << std::endl;*/
-      
+
       char flag = reader.ReadChar();
       unsigned char type = reader.ReadUInt16();
       /*std::cout << "Receive " << std::to_string(r) << " bytes"
@@ -116,7 +118,7 @@ void StartServer() {
         std::string str = reader.ReadString();
         std::cout << " msg: " << msg << std::endl;
         std::cout << " str: " << str << std::endl;
-        //std::cout << " data: " << buffer << std::endl;
+        // std::cout << " data: " << buffer << std::endl;
       }
 
       // Отправка ответа клиенту обратно его же сообщения
@@ -136,15 +138,15 @@ void StartServer() {
 }
 
 void OnLogCallback(std::string message, LogType logType) {
-   std::cout << message << std::endl;
+  std::cout << message << std::endl;
 }
 
-void UpdateCallback(){
-  while(server->IsActive()){
+void UpdateCallback() {
+  while (server->IsActive()) {
     server->PollEvents();
     Sleep(100);
   }
-  std::cout<< "UpdateCallback closed" << std::endl;
+  std::cout << "UpdateCallback closed" << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -154,26 +156,40 @@ int main(int argc, char **argv) {
   g_argc = argc;
   g_argv = argv;
 
+  std::string key = "1234567890123456"; // 128 byte, 16 * 8
+  std::string plainText = "Hi, this is test!"; 
+  
+  struct AES_ctx ctx;
+  AES_init_ctx(&ctx, (uint8_t*)key.c_str());
+
+  // Шифрование
+  AES_ECB_encrypt(&ctx, (uint8_t*)plainText.c_str());
+  std::cout << "Encrypted: " << plainText << std::endl;
+
+  uint8_t decrypted[16];
+  AES_ECB_decrypt(&ctx, decrypted);
+  std::cout << "Decrypted: " << std::string((char*)decrypted)<< std::endl;
+
+
   InitCommandLineArgs();
 
   std::cout << "\tKatriel's UDP Server++" << std::endl;
 
-  //StartServer();
-  
+  // StartServer();
+
   server = new MainServer();
   server->OnLogCallback = OnLogCallback;
   server->Listen(port);
 
   updateCallbackThread = std::thread(UpdateCallback);
 
-  while(server->IsListening()){
+  while (server->IsListening()) {
     std::string cmd;
     std::getline(std::cin, cmd);
-    
-    if (cmd == "q"){
+
+    if (cmd == "q") {
       server->Stop();
     }
-    
   }
 
   /*server = new MainClient();
