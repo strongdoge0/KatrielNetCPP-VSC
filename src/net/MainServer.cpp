@@ -111,8 +111,19 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
             << NetHelper::MessageTypeToString(type) << " from "
             << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
 
-  if ((MessageFlag)flag == MessageFlag::Accept) {
+  auto conn = _connectionStates.find(addr);
+  if (conn != _connectionStates.end()) {
+    ConnectionState *connectionState = conn->second;
+    Log("Connection exists, nope");
+  } else {
+    ConnectionState *connectionState = new ConnectionState(addr);
+    _connectionStates[addr] = connectionState;
+    Log("New connection, added to map");
   }
+
+  /*if ((MessageFlag)flag == MessageFlag::Accept) {
+    
+  }*/
 
   unsigned short type = reader.ReadUInt16();
 
