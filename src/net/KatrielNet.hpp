@@ -10,6 +10,7 @@
 #include "../net/MessageType.hpp"
 #include "../net/LogType.hpp"
 #include "../net/ConnectionState.hpp"
+#include "../net/ActionDispatcher.hpp"
 
 #if defined(_SERVER)
     #include "MainServer.hpp"

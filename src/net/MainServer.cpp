@@ -2,9 +2,25 @@
 
 bool MainServer::IsListening() { return _listening; }
 
-bool MainServer::IsActive() { return true; }
+bool MainServer::IsActive() {
+  if (_listening || _eventDispatcher.IsActive()) {
+    return true;
+  }
+  return false;
+}
 
-void MainServer::Log(std::string message, LogType logType) {}
+void MainServer::Log(std::string message, LogType logType) {
+  /*std::lock_guard<std::mutex> guard(_eventsLock);
+  _events.push_back(
+      [message]() { std::cout << "Action Log: " << message << std::endl; });*/
+  /*_eventDispatcher.Add(
+      [message]() { std::cout << "Action Log: " << message << std::endl; });*/
+  _eventDispatcher.Add([message, logType, this]() {
+    if (OnLogCallback) {
+      OnLogCallback(message, logType);
+    }
+  });
+}
 
 bool MainServer::Listen(int port) {
   _port = port;
@@ -16,7 +32,8 @@ bool MainServer::Listen(int port) {
   _serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   if (_serverSocket == -1) {
-    std::cout << "Listen error: unable to create socket" << std::endl;
+    // std::cout << "Listen error: unable to create socket" << std::endl;
+    Log("Listen error: unable to create socket", LogType::Error);
     return false;
   }
 
@@ -30,7 +47,7 @@ bool MainServer::Listen(int port) {
   // Привязка сокета к адресу
   if (bind(_serverSocket, (struct sockaddr *)&_serverAddr,
            sizeof(_serverAddr)) == -1) {
-    std::cout << "Listen error: unable to bind socket" << std::endl;
+    Log("Listen error: unable to bind socket", LogType::Error);
     return false;
   }
 
@@ -42,8 +59,11 @@ bool MainServer::Listen(int port) {
 }
 
 void MainServer::ListenCallback() {
-  std::cout << "UDP server start listening at "
-            << NetHelper::SockaddrToString(&_serverAddr) << std::endl;
+  // std::cout << "UDP server start listening at "
+  //           << NetHelper::SockaddrToString(&_serverAddr) << std::endl;
+  Log("UDP server start listening at " +
+          NetHelper::SockaddrToString(&_serverAddr),
+      LogType::Info);
   while (_listening) {
     struct sockaddr_in client_addr;
     char *buffer = new char[ConnectionState::bufferSize];
@@ -59,9 +79,11 @@ void MainServer::ListenCallback() {
       ReadCallback(&client_addr, data);
 
     } else {
-      std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
+      /*std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
-                << std::endl;
+                << std::endl;*/
+      Log("Log: From " + NetHelper::SockaddrToString(&_serverAddr) +
+          " received " + std::to_string(bytesRead) + " bytes");
     }
   }
 }
@@ -73,12 +95,16 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
   char id = reader.ReadChar();
   char flag = reader.ReadChar();
 
-  std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
-            << " id " << (int)id
-            << " flag " << NetHelper::MessageFlagToString(flag) //<< " type "
+  /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
+            << " id " << (int)id << " flag "
+            << NetHelper::MessageFlagToString(flag) //<< " type "
             //<< NetHelper::MessageTypeToString(type)
-            << " received "
-            << (int)data.length() << " bytes" << std::endl;
+            << " received " << (int)data.length() << " bytes" << std::endl;*/
+
+  Log("Log: From " + NetHelper::SockaddrToString(&_serverAddr) + " id " +
+      std::to_string((int)id) + " flag " +
+      NetHelper::MessageFlagToString(flag) + " received " +
+      std::to_string((int)data.length()) + " bytes");
 
   /*std::cout << "Receive " << (int)data.length() << " bytes"
             << " flag " << NetHelper::MessageFlagToString(flag) << " type "
@@ -86,24 +112,29 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
             << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
 
   if ((MessageFlag)flag == MessageFlag::Accept) {
-    
   }
 
-
   unsigned short type = reader.ReadUInt16();
-  
+
   if ((MessageType)type == MessageType::Chat) {
-    const char *msg = reader.ReadCString();
+    // const char *msg = reader.ReadCString();
     std::string str = reader.ReadString();
-    std::cout << " msg: " << msg << std::endl;
-    std::cout << " str: " << str << std::endl;
+    // std::cout << " msg: " << msg << std::endl;
+    // std::cout << " str: " << str << std::endl;
+    Log("Message: " + str);
   }
 }
 
-void MainServer::PollEvents() {}
+void MainServer::PollEvents() { _eventDispatcher.Execute(); }
 
-void MainServer::Disconnect(ConnectionState connectionState) {}
+void MainServer::Disconnect(ConnectionState connectionState) {
+  //
+}
 
-void MainServer::Close() {}
+void MainServer::Close() {
+  _listening = false;
+  Log("UDP server closed", LogType::Info);
+  //
+}
 
-void MainServer::Stop() {}
+void MainServer::Stop() { Close(); }

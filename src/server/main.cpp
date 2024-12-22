@@ -7,6 +7,7 @@ int port = 5500;
 std::string username = "user1";
 std::string password = "user1";
 
+std::thread updateCallbackThread;
 MainServer *server = nullptr;
 
 int PressAnyKey();
@@ -134,6 +135,18 @@ void StartServer() {
   WSACleanup();        // Очистка Winsock
 }
 
+void OnLogCallback(std::string message, LogType logType) {
+   std::cout << message << std::endl;
+}
+
+void UpdateCallback(){
+  while(server->IsActive()){
+    server->PollEvents();
+    Sleep(100);
+  }
+  std::cout<< "UpdateCallback closed" << std::endl;
+}
+
 int main(int argc, char **argv) {
   // setlocale(LC_ALL, "ru_RU.UTF-8");
   // SetConsoleCP(1251); // Установка кодовой страницы для ввода
@@ -148,7 +161,20 @@ int main(int argc, char **argv) {
   //StartServer();
   
   server = new MainServer();
+  server->OnLogCallback = OnLogCallback;
   server->Listen(port);
+
+  updateCallbackThread = std::thread(UpdateCallback);
+
+  while(server->IsListening()){
+    std::string cmd;
+    std::getline(std::cin, cmd);
+    
+    if (cmd == "q"){
+      server->Stop();
+    }
+    
+  }
 
   /*server = new MainClient();
   server->Connect(ip, port);*/

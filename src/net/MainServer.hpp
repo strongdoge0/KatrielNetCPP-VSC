@@ -4,6 +4,9 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
+#include <functional>
+#include <mutex>
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #include <winsock2.h>
@@ -43,8 +46,9 @@ private:
     WSADATA wsaData;
     SOCKET _serverSocket;
     struct sockaddr_in _serverAddr;
+    ActionDispatcher _eventDispatcher;
     std::unordered_map<struct sockaddr_in*, ConnectionState*> _connectionStates;
-    //object _connectionStatesLock = new object();
+    std::mutex _connectionStatesLock;
     
     void Log(std::string message, LogType logType = LogType::Default);
     void ReadCallback(struct sockaddr_in *addr, std::string data);
