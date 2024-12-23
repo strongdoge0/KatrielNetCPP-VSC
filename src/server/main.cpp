@@ -39,20 +39,24 @@ NULL, buffer, buffer_length) != 0) { std::cerr << "Ошибка при прео�
     }
 }*/
 
-/*
+
 void StartServer() {
+  #ifdef _WIN32
   WSADATA wsaData;
+  #endif
+  
   SOCKET sockfd;
   struct sockaddr_in server_addr, client_addr;
 
   // char buffer[1024];
   int bufferSize = 1024; // + 1;
   char *buffer = new char[bufferSize];
-  int client_len = sizeof(client_addr);
-
+  socklen_t client_len = sizeof(client_addr);
+  #ifdef _WIN32
   // Инициализация Winsock
   WSAStartup(MAKEWORD(2, 2), &wsaData);
-
+  #endif
+  
   // Создание UDP сокета
   sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -64,7 +68,7 @@ void StartServer() {
   // Привязка сокета к адресу
   bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-  std::cout << "UDP server start on port " << std::to_string(port) << std::endl;
+  std::cout << "Experimental UDP server start on port " << std::to_string(port) << std::endl;
 
   while (true) {
     // Прием данных от клиента
@@ -78,7 +82,6 @@ void StartServer() {
     // бинарные
 
     if (r >= 0) {
-
       std::string data;
       data.assign(buffer, r);
 
@@ -87,7 +90,7 @@ void StartServer() {
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
-      std::cout << std::endl;*
+      std::cout << std::endl;*/
 
       // MessageReader reader = MessageReader(std::string(buffer));  // не будет
       // работать, так как бинарные данные нельзя записать в текст
@@ -99,21 +102,21 @@ void StartServer() {
         std::cout << "data " << std::to_string(i) << " = " << testData[i] << "|"
                   << +testData[i] << std::endl;
       }
-      std::cout << std::endl;*
-
+      std::cout << std::endl;*/
+      //unsigned short size = reader.ReadChar();
+      char id = reader.ReadChar();
       char flag = reader.ReadChar();
-      unsigned char type = reader.ReadUInt16();
+      unsigned short type = reader.ReadUInt16();
       /*std::cout << "Receive " << std::to_string(r) << " bytes"
                 << " message: " << buffer
                 << " from " << NetHelper::SockaddrToString((sockaddr
          *)&client_addr)
-                << std::endl;*
+                << std::endl;*/
 
       std::cout << "Receive " << std::to_string(r) << " bytes"
                 << " flag " << (int)flag << " type " << (int)type << " from "
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
-
       if ((MessageType)type == MessageType::Chat) {
         const char *msg = reader.ReadCString();
         std::string str = reader.ReadString();
@@ -130,17 +133,25 @@ void StartServer() {
                 << NetHelper::SockaddrToString((sockaddr *)&client_addr)
                 << std::endl;
     }
-
+    
     #ifdef _WIN32    
     Sleep(100);
 #else
-    sleep(100);
+    //sleep(100);
+    usleep(100000); //100000 микросекунд = 100 мс
 #endif
   }
-
+  
+  std::cout << "UDP server closed"<< std::endl;
+  
+  #ifdef _WIN32
   closesocket(sockfd); // Закрытие сокета
   WSACleanup();        // Очистка Winsock
-}*/
+  #elif __linux__
+  close(sockfd);
+  #endif
+  
+}
 
 void OnLogCallback(std::string message, LogType logType) {
   std::cout << message << std::endl;
@@ -156,7 +167,8 @@ void UpdateCallback() {
 #ifdef _WIN32    
     Sleep(100);
 #else
-    sleep(100);
+    //sleep(100);
+    usleep(100000); //100000 микросекунд = 100 мс
 #endif
   }
   std::cout << "UpdateCallback closed" << std::endl;
@@ -173,7 +185,7 @@ int main(int argc, char **argv) {
 
   std::cout << "\tKatriel's UDP Server++" << std::endl;
 
-  // StartServer();
+  //StartServer();
 
   server = new MainServer();
   server->OnLogCallback = OnLogCallback;
@@ -198,6 +210,7 @@ int main(int argc, char **argv) {
 }
 
 int PressAnyKey() {
+  std::cout << "Press any key for exit" << std::endl;
   char anyKey;
   std::cin >> anyKey;
   return EXIT_SUCCESS;

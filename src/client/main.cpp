@@ -133,9 +133,16 @@ void StartClient() {
   server_addr.sin_port = htons(port); // Порт сервера
   server_addr.sin_addr.s_addr = inet_addr(ip.c_str()); // IP-адрес сервера
 
+  std::cout << "Experimental UDP client start"<< std::endl;
+
+
   while (true) {
     std::string message;
     std::getline(std::cin, message);
+
+    if (message == "q"){
+      break;
+    }
 
     std::string msg = SendMessageTo(MessageFlag::Unreliable,
                                     (unsigned short)MessageType::Chat,
@@ -221,9 +228,13 @@ void StartClient() {
     #ifdef _WIN32    
     Sleep(100);
 #else
-    sleep(100);
+    //sleep(100);
+    usleep(100000); //100000 микросекунд = 100 мс
 #endif
   }
+  
+  std::cout << "UDP client closed"<< std::endl;
+  
 #ifdef _WIN32
   closesocket(sockfd); // Закрытие сокета
   WSACleanup();        // Очистка Winsock
@@ -356,6 +367,7 @@ int main(int argc, char **argv) {
 }
 
 int PressAnyKey() {
+  std::cout << "Press any key for exit" << std::endl;
   char anyKey;
   std::cin >> anyKey;
   return EXIT_SUCCESS;

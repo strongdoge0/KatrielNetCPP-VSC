@@ -159,6 +159,12 @@ void MainServer::Close() {
   _listening = false;
   Log("UDP server closed", LogType::Info);
   //
+  #ifdef _WIN32
+  closesocket(_serverSocket); // Закрытие сокета
+  WSACleanup();        // Очистка Winsock
+  #elif __linux__
+  close(_serverSocket);
+  #endif
 }
 
 void MainServer::Stop() { Close(); }
