@@ -39,6 +39,7 @@ NULL, buffer, buffer_length) != 0) { std::cerr << "Ошибка при прео�
     }
 }*/
 
+/*
 void StartServer() {
   WSADATA wsaData;
   SOCKET sockfd;
@@ -86,7 +87,7 @@ void StartServer() {
         std::cout << "byte " << std::to_string(i) << " = " << buffer[i] << "|"
                   << +buffer[i] << std::endl;
       }
-      std::cout << std::endl;*/
+      std::cout << std::endl;*
 
       // MessageReader reader = MessageReader(std::string(buffer));  // не будет
       // работать, так как бинарные данные нельзя записать в текст
@@ -98,7 +99,7 @@ void StartServer() {
         std::cout << "data " << std::to_string(i) << " = " << testData[i] << "|"
                   << +testData[i] << std::endl;
       }
-      std::cout << std::endl;*/
+      std::cout << std::endl;*
 
       char flag = reader.ReadChar();
       unsigned char type = reader.ReadUInt16();
@@ -106,7 +107,7 @@ void StartServer() {
                 << " message: " << buffer
                 << " from " << NetHelper::SockaddrToString((sockaddr
          *)&client_addr)
-                << std::endl;*/
+                << std::endl;*
 
       std::cout << "Receive " << std::to_string(r) << " bytes"
                 << " flag " << (int)flag << " type " << (int)type << " from "
@@ -130,12 +131,16 @@ void StartServer() {
                 << std::endl;
     }
 
-    Sleep(10);
+    #ifdef _WIN32    
+    Sleep(100);
+#else
+    sleep(100);
+#endif
   }
 
   closesocket(sockfd); // Закрытие сокета
   WSACleanup();        // Очистка Winsock
-}
+}*/
 
 void OnLogCallback(std::string message, LogType logType) {
   std::cout << message << std::endl;
@@ -148,7 +153,11 @@ void OnConnectCallback(ConnectionState *connectionState) {
 void UpdateCallback() {
   while (server->IsActive()) {
     server->PollEvents();
+#ifdef _WIN32    
     Sleep(100);
+#else
+    sleep(100);
+#endif
   }
   std::cout << "UpdateCallback closed" << std::endl;
 }

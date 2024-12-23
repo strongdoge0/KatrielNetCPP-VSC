@@ -8,10 +8,18 @@
 #include <functional>
 #include <mutex>
 #include <ctime>
-//#define _WINSOCK_DEPRECATED_NO_WARNINGS
-//#define _CRT_SECURE_NO_WARNINGS
+
+#ifdef _WIN32 // для Windows
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib")
+#elif __linux__ // для Linux
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#else
+// неизвестная ОС
+#endif
 
 #include "KatrielNet.hpp"
 
@@ -44,7 +52,9 @@ private:
     int _port;
     bool _listening;
     std::thread listenCallbackThread;
+    #ifdef _WIN32
     WSADATA wsaData;
+    #endif
     SOCKET _serverSocket;
     struct sockaddr_in _serverAddr;
     ActionDispatcher _eventDispatcher;

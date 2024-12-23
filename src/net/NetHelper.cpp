@@ -1,16 +1,39 @@
 #include "NetHelper.hpp"
 
 std::string NetHelper::SockaddrToString(const sockaddr *addr) {
-  // Буфер для хранения строкового представления адреса
-  char address_string[22 /*INET_ADDRSTRLEN*/]; // Достаточно для IPv4
+  #ifdef _WIN32
+    // Буфер для хранения строкового представления адреса
+  char address_string[46 /*22*/ /*INET_ADDRSTRLEN*/]; // Достаточно для IPv4
   DWORD address_string_length = sizeof(address_string);
-
   if (WSAAddressToStringA((LPSOCKADDR)addr, sizeof(sockaddr), NULL,
                           address_string, &address_string_length) != 0) {
     std::cout << "SockaddrToString error: code " << WSAGetLastError()
               << std::endl;
   }
-  return std::string(address_string);
+    return std::string(address_string);
+  #elif __linux__
+    char ipstr[INET6_ADDRSTRLEN]; // Достаточно для хранения IPv6 адреса
+    unsigned short port;
+    switch (addr->sa_family) {
+        case AF_INET: {
+            // Преобразование IPv4
+            struct sockaddr_in *s = (struct sockaddr_in *)addr;
+            inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof(ipstr));
+            port = ntohs(s->sin_port);
+            break;
+        }
+        case AF_INET6: {
+            // Преобразование IPv6
+            struct sockaddr_in6 *s = (struct sockaddr_in6 *)addr;
+            inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof(ipstr));
+            port = ntohs(s->sin6_port);
+            break;
+        }
+        default:
+            return "Unknown address family";
+    }
+    return std::string(ipstr) + ":" + std::to_string(port);
+  #endif
 }
 
 std::string NetHelper::SockaddrToString(struct sockaddr_in *addr_in) {

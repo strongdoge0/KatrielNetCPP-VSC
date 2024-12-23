@@ -17,6 +17,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#ifdef __linux__
+#include <cstring>
+#endif
 
 class MessageWriter{
     public:

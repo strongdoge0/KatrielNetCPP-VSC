@@ -116,13 +116,15 @@ std::string SendMessageTo(MessageFlag flag, T... args) {
 }
 
 void StartClient() {
+  #ifdef _WIN32
   WSADATA wsaData;
+  #endif
   SOCKET sockfd;
   struct sockaddr_in server_addr;
-
+#ifdef _WIN32
   // Инициализация Winsock
   WSAStartup(MAKEWORD(2, 2), &wsaData);
-
+#endif
   // Создание UDP сокета
   sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -157,7 +159,7 @@ void StartClient() {
     char *buffer = new char[bufferSize];
 
     // Ожидание ответа от сервера
-    int server_len = sizeof(server_addr);
+    socklen_t server_len = sizeof(server_addr);
     // int r = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
     //                  (struct sockaddr *)&server_addr, &server_len);
     int r = recvfrom(sockfd, buffer, bufferSize, 0,
@@ -216,11 +218,18 @@ void StartClient() {
       }
     }
 
-    Sleep(10);
+    #ifdef _WIN32    
+    Sleep(100);
+#else
+    sleep(100);
+#endif
   }
-
+#ifdef _WIN32
   closesocket(sockfd); // Закрытие сокета
   WSACleanup();        // Очистка Winsock
+  #elif __linux__
+  close(sockfd);  
+  #endif
 }
 
 void Test() {

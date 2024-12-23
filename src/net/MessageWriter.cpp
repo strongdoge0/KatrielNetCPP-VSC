@@ -48,7 +48,7 @@ void MessageWriter::Write(float value) {
 // utf8 char array string
 void MessageWriter::Write(const char *value) {
   if (strlen(value) > 255) {
-    throw std::exception("MessageWriter error: string size > 255");
+    throw std::runtime_error("MessageWriter error: string size > 255");
   }
   char length = strlen(value); // Получаем длину строки
   //oss << length;

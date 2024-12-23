@@ -28,9 +28,10 @@ void MainServer::Log(std::string message, LogType logType) {
 
 bool MainServer::Listen(int port) {
   _port = port;
-
+  #ifdef _WIN32
   // Инициализация Winsock
   WSAStartup(MAKEWORD(2, 2), &wsaData);
+  #endif
 
   // Создание UDP сокета
   _serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -71,7 +72,7 @@ void MainServer::ListenCallback() {
   while (_listening) {
     struct sockaddr_in client_addr;
     char *buffer = new char[ConnectionState::bufferSize];
-    int client_len = sizeof(client_addr);
+    socklen_t client_len = sizeof(client_addr);
 
     int bytesRead = recvfrom(_serverSocket, buffer, ConnectionState::bufferSize,
                              0, (struct sockaddr *)&client_addr, &client_len);

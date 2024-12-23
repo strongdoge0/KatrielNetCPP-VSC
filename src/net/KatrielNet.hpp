@@ -12,6 +12,10 @@
 #include "../net/ConnectionState.hpp"
 #include "../net/ActionDispatcher.hpp"
 
+#ifdef __linux__
+typedef int SOCKET;
+#endif
+
 #if defined(_SERVER)
     #include "MainServer.hpp"
 #elif defined(_CLIENT)
