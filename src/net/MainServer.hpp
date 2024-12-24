@@ -66,6 +66,7 @@ private:
     std::mutex _connectionStatesLock;
     
     void Log(std::string message, LogType logType = LogType::Log);
+    bool FindConnectionState(struct sockaddr_in *addr);
     void ReadCallback(struct sockaddr_in *addr, std::string data);
     std::string GetHeader(unsigned short size, char id, MessageFlag flag);
     std::string GetData(std::vector<std::any> vector);

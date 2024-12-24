@@ -91,6 +91,15 @@ void MainServer::ListenCallback() {
   }
 }
 
+bool MainServer::FindConnectionState(struct sockaddr_in *addr) {
+  for (int i = 0; i < _connectionStates.size(); i++) {
+    if (NetHelper::СompareSockAddrIn(_connectionStates[i]->GetSockaddr(), addr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
 
   MessageReader reader = MessageReader(data);
@@ -119,24 +128,17 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
     }
   }*/
 
-  bool found = false;
-  for (int i = 0; i < _connectionStates.size(); i++) {
-    if (_connectionStates[i]->GetSockaddr() == addr){
-      found = true;
-      Log("Connection exists, nope");
-      break;
-    }
-  }
-
-  if (!found){
-     ConnectionState *connectionState = new ConnectionState(addr);
-     _connectionStates.push_back(connectionState);
-     // Log("New connection, added to map");
-      _eventDispatcher.Add([connectionState, this]() {
-        if (OnConnectCallback) {
-          OnConnectCallback(connectionState);
-        }
-      });
+  if (!FindConnectionState(addr)) {
+    ConnectionState *connectionState = new ConnectionState(addr);
+    _connectionStates.push_back(connectionState);
+    // Log("New connection " + NetHelper::SockaddrToString(addr) + ", added");
+    _eventDispatcher.Add([connectionState, this]() {
+      if (OnConnectCallback) {
+        OnConnectCallback(connectionState);
+      }
+    });
+  }else{
+    Log("Connection " + NetHelper::SockaddrToString(addr) + " exists, nope");
   }
 
   int i = 0;
@@ -273,12 +275,12 @@ void MainServer::SendCallback(ConnectionState *connectionState,
                 (sockaddr *)connectionState->GetSockaddr()),
         LogType::Log);
   } else {
-    #ifdef _WIN32
+#ifdef _WIN32
     Log("SendCallback error: " + std::to_string(WSAGetLastError()),
         LogType::Error);
-        #else
-        Log("SendCallback error", LogType::Error);
-        #endif
+#else
+    Log("SendCallback error", LogType::Error);
+#endif
   }
 }
 

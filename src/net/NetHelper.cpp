@@ -1,5 +1,11 @@
 #include "NetHelper.hpp"
 
+bool NetHelper::СompareSockAddrIn(const sockaddr_in *addr1, const sockaddr_in *addr2){
+  return (addr1->sin_family == addr2->sin_family) &&
+           (addr1->sin_port == addr2->sin_port) &&
+           (addr1->sin_addr.s_addr == addr2->sin_addr.s_addr);
+}
+
 std::string NetHelper::SockaddrToString(const sockaddr *addr) {
   #ifdef _WIN32
     // Буфер для хранения строкового представления адреса
