@@ -61,7 +61,8 @@ private:
     SOCKET _serverSocket;
     struct sockaddr_in _serverAddr;
     ActionDispatcher _eventDispatcher;
-    std::unordered_map<struct sockaddr_in*, ConnectionState*> _connectionStates;
+    //std::unordered_map<sockaddr*, ConnectionState*> _connectionStates;
+    std::vector<ConnectionState*> _connectionStates;
     std::mutex _connectionStatesLock;
     
     void Log(std::string message, LogType logType = LogType::Log);

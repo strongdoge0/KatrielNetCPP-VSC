@@ -100,13 +100,13 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
 
   // auto it = _connectionStates.find(addr);
   // if (it != _connectionStates.end()) {
-
-  if (false) {
+  // if (_connectionStates.count(addr)) {
+  /*if (false) {
     //  ConnectionState *connectionState = _connectionStates[addr];
     Log("Connection exists, nope");
   } else {
     ConnectionState *connectionState = new ConnectionState(addr);
-    auto result = _connectionStates.insert({addr, connectionState});
+    auto result = _connectionStates.insert({(sockaddr*)addr, connectionState});
     if (result.second) {
       // Log("New connection, added to map");
       _eventDispatcher.Add([connectionState, this]() {
@@ -114,13 +114,40 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
           OnConnectCallback(connectionState);
         }
       });
+    }else{
+      Log("Connection exists, nope");
+    }
+  }*/
+
+  bool found = false;
+  for (int i = 0; i < _connectionStates.size(); i++) {
+    if (_connectionStates[i]->GetSockaddr() == addr){
+      found = true;
+      Log("Connection exists, nope");
+      break;
     }
   }
 
-  for (const auto& element: _connectionStates) {
-    Log("Test 2: " + NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
-        NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
-        NetHelper::SockaddrToString((sockaddr *)element.second->GetSockaddr()));
+  if (!found){
+     ConnectionState *connectionState = new ConnectionState(addr);
+     _connectionStates.push_back(connectionState);
+     // Log("New connection, added to map");
+      _eventDispatcher.Add([connectionState, this]() {
+        if (OnConnectCallback) {
+          OnConnectCallback(connectionState);
+        }
+      });
+  }
+
+  int i = 0;
+  for (const auto &element : _connectionStates) {
+    i++;
+    Log("Test 2: element " + std::to_string(i) + " " +
+        NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
+        // NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
+        // NetHelper::SockaddrToString((sockaddr
+        // *)element.second->GetSockaddr()));
+        NetHelper::SockaddrToString((sockaddr *)element->GetSockaddr()));
   }
 
   /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
