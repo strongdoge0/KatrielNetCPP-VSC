@@ -215,7 +215,7 @@ void MainServer::SendMessageTo(ConnectionState *connectionState,
 void MainServer::SendCallback(ConnectionState *connectionState,
                               std::string messageData) {
 
-  std::cout << "data " << messageData << std::endl;
+  //std::cout << "data " << messageData << std::endl;
 
   struct sockaddr_in client_addr = *connectionState->GetSockaddr();
 
