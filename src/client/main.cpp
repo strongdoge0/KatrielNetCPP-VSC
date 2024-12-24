@@ -1,7 +1,8 @@
 #include "main.hpp"
 
 std::string website = "http://strongdoge.temp.swtest.ru";
-std::string ip = "127.0.0.1";
+//std::string ip = "127.0.0.1";
+std::string ip = "188.130.251.54";
 int port = 5500;
 
 std::string username = "user1";

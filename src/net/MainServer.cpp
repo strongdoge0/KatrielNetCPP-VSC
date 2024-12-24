@@ -273,8 +273,12 @@ void MainServer::SendCallback(ConnectionState *connectionState,
                 (sockaddr *)connectionState->GetSockaddr()),
         LogType::Log);
   } else {
+    #ifdef _WIN32
     Log("SendCallback error: " + std::to_string(WSAGetLastError()),
         LogType::Error);
+        #else
+        Log("SendCallback error", LogType::Error);
+        #endif
   }
 }
 
