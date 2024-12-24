@@ -64,12 +64,9 @@ void OnConnectCallback(ConnectionState *connectionState) {
 }
 
 void OnReceiveCallback(ConnectionState *connectionState, std::string data) {
+  //std::cout << "data: " << data << std::endl;
   
-  
-  
-  std::cout << "data: " << data << std::endl;
-  
-  /*MessageReader reader = MessageReader(*data);
+  MessageReader reader = MessageReader(data);
   unsigned short type = reader.ReadUInt16();
 
   if ((MessageType)type == MessageType::Chat) {
@@ -78,7 +75,7 @@ void OnReceiveCallback(ConnectionState *connectionState, std::string data) {
     // std::cout << " msg: " << msg << std::endl;
     // std::cout << " str: " << str << std::endl;
     Log("Message: " + str);
-  }*/
+  }
   
 }
 

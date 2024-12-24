@@ -142,7 +142,7 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
     });
   } else {
     // Log("Connection " + NetHelper::SockaddrToString(addr) + " exists, nope");
-
+  }
     /*int i = 0;
     for (const auto &element : _connectionStates) {
       i++;
@@ -196,7 +196,7 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
         OnReceiveCallback(connectionState, messageData);
       }
     });
-  }
+  
 }
 
 std::string MainServer::GetHeader(unsigned short size, char id,
