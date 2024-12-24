@@ -1,5 +1,6 @@
 #include "main.hpp"
 
+std::string name = "Nexus";
 std::string website = "http://strongdoge.temp.swtest.ru";
 std::string ip = "127.0.0.1";
 int port = 5500;
@@ -36,6 +37,16 @@ void InitCommandLineArgs() {
   // nope
 }
 
+void Log(std::string message, LogType logType = LogType::Log){
+  std::time_t now = std::time(0);
+  std::tm *localTime = std::localtime(&now);
+  std::string prefix = "[" + std::to_string(localTime->tm_hour) + ":" +
+                       std::to_string(localTime->tm_min) + ":" +
+                       std::to_string(localTime->tm_sec) + "] " +
+                       NetHelper::LogTypeToString((char)logType) + ": ";
+  std::cout << prefix + message << std::endl;
+}
+
 void OnLogCallback(std::string message, LogType logType) {
   std::cout << message << std::endl;
 }
@@ -44,10 +55,31 @@ void OnConnectCallback(ConnectionState *connectionState) {
   std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
   connectionStates.push_back(connectionState);
   
-  std::cout << "New connection " << NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
-  const char* msg = "Server: Welcome, this is a test message from server to new connection - for you!";
-  server->SendSingleMessageTo(connectionState, (char)0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, msg});
-  //server->SendMessageTo(connectionState, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, msg});
+  //std::cout << "New connection " << NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
+  Log("New connection " + NetHelper::SockaddrToString(connectionState->GetSockaddr()));
+  //const char* msg = "Server: Welcome to the " + name.c_str() + ", this is a test message from server to new connection - for you!";
+  std::string welcomeMessage = "Server: Welcome to the " + name + ", this is a welcome message from server to new connection - to you! Привет";
+  server->SendSingleMessageTo(connectionState, (char)0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, welcomeMessage});
+  //server->SendMessageTo(connectionState, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, welcomeMessage});
+}
+
+void OnReceiveCallback(ConnectionState *connectionState, std::string data) {
+  
+  
+  
+  std::cout << "data: " << data << std::endl;
+  
+  /*MessageReader reader = MessageReader(*data);
+  unsigned short type = reader.ReadUInt16();
+
+  if ((MessageType)type == MessageType::Chat) {
+    // const char *msg = reader.ReadCString();
+    std::string str = reader.ReadString();
+    // std::cout << " msg: " << msg << std::endl;
+    // std::cout << " str: " << str << std::endl;
+    Log("Message: " + str);
+  }*/
+  
 }
 
 void UpdateCallback() {
@@ -60,10 +92,12 @@ void UpdateCallback() {
     usleep(100000); //100000 микросекунд = 100 мс
 #endif
   }
-  std::cout << "UpdateCallback closed" << std::endl;
+  //std::cout << "UpdateCallback closed" << std::endl;
+  Log("UpdateCallback closed");
 }
 
 void SendToAll(std::string message){
+  std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
   for (int i = 0; i < connectionStates.size(); i++){
     server->SendSingleMessageTo(connectionStates[i], 0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, message});
   }
@@ -80,6 +114,7 @@ int main(int argc, char **argv) {
   server = new MainServer();
   server->OnLogCallback = OnLogCallback;
   server->OnConnectCallback = OnConnectCallback;
+  server->OnReceiveCallback = OnReceiveCallback;
   server->Listen(port);
 
   updateCallbackThread = std::thread(UpdateCallback);

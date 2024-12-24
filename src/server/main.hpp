@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <ctime>
 
 #define _SERVER
 #include "../net/KatrielNet.hpp"

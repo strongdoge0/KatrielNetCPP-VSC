@@ -80,7 +80,7 @@ void MainServer::ListenCallback() {
     if (bytesRead >= 0) {
       std::string data;
       data.assign(buffer, bytesRead);
-      Log("Test 1: " + NetHelper::SockaddrToString((sockaddr *)&client_addr));
+      //Log("Test 1: " + NetHelper::SockaddrToString((sockaddr *)&client_addr));
       ReadCallback(&client_addr, data);
 
     } else {
@@ -91,13 +91,14 @@ void MainServer::ListenCallback() {
   }
 }
 
-bool MainServer::FindConnectionState(struct sockaddr_in *addr) {
+ConnectionState *MainServer::FindConnectionState(struct sockaddr_in *addr) {
   for (int i = 0; i < _connectionStates.size(); i++) {
-    if (NetHelper::СompareSockAddrIn(_connectionStates[i]->GetSockaddr(), addr)) {
-      return true;
+    if (NetHelper::СompareSockAddrIn(_connectionStates[i]->GetSockaddr(),
+                                     addr)) {
+      return _connectionStates[i];
     }
   }
-  return false;
+  return nullptr;
 }
 
 void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
@@ -128,8 +129,10 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
     }
   }*/
 
-  if (!FindConnectionState(addr)) {
-    ConnectionState *connectionState = new ConnectionState(addr);
+  ConnectionState *connectionState = FindConnectionState(addr);
+
+  if (!connectionState) {
+    /*ConnectionState **/connectionState = new ConnectionState(addr);
     _connectionStates.push_back(connectionState);
     // Log("New connection " + NetHelper::SockaddrToString(addr) + ", added");
     _eventDispatcher.Add([connectionState, this]() {
@@ -137,53 +140,62 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
         OnConnectCallback(connectionState);
       }
     });
-  }else{
-    Log("Connection " + NetHelper::SockaddrToString(addr) + " exists, nope");
-  }
+  } else {
+    // Log("Connection " + NetHelper::SockaddrToString(addr) + " exists, nope");
 
-  int i = 0;
-  for (const auto &element : _connectionStates) {
-    i++;
-    Log("Test 2: element " + std::to_string(i) + " " +
-        NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
-        // NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
-        // NetHelper::SockaddrToString((sockaddr
-        // *)element.second->GetSockaddr()));
-        NetHelper::SockaddrToString((sockaddr *)element->GetSockaddr()));
-  }
+    /*int i = 0;
+    for (const auto &element : _connectionStates) {
+      i++;
+      Log("Test 2: element " + std::to_string(i) + " " +
+          NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
+          // NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
+          // NetHelper::SockaddrToString((sockaddr
+          // *)element.second->GetSockaddr()));
+          NetHelper::SockaddrToString((sockaddr *)element->GetSockaddr()));
+    }*/
 
-  /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
-            << " id " << (int)id << " flag "
-            << NetHelper::MessageFlagToString(flag) //<< " type "
-            //<< NetHelper::MessageTypeToString(type)
-            << " received " << (int)data.length() << " bytes" << std::endl;*/
+    /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
+              << " id " << (int)id << " flag "
+              << NetHelper::MessageFlagToString(flag) //<< " type "
+              //<< NetHelper::MessageTypeToString(type)
+              << " received " << (int)data.length() << " bytes" << std::endl;*/
 
-  Log("From " + NetHelper::SockaddrToString(addr) + " id " +
-      std::to_string((int)id) + " flag " +
-      NetHelper::MessageFlagToString(flag) + " received " +
-      std::to_string((int)data.length()) + " bytes");
+    Log("From " + NetHelper::SockaddrToString(addr) + " id " +
+        std::to_string((int)id) + " flag " +
+        NetHelper::MessageFlagToString(flag) + " received " +
+        std::to_string((int)data.length()) + " bytes");
 
-  /*std::cout << "Receive " << (int)data.length() << " bytes"
-            << " flag " << NetHelper::MessageFlagToString(flag) << " type "
-            << NetHelper::MessageTypeToString(type) << " from "
-            << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
+    /*std::cout << "Receive " << (int)data.length() << " bytes"
+              << " flag " << NetHelper::MessageFlagToString(flag) << " type "
+              << NetHelper::MessageTypeToString(type) << " from "
+              << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
 
-  // auto conn = _connectionStates.find(addr);
-  // if (conn != _connectionStates.end()) {
-  //   ConnectionState *connectionState = conn->second;
+    // auto conn = _connectionStates.find(addr);
+    // if (conn != _connectionStates.end()) {
+    //   ConnectionState *connectionState = conn->second;
 
-  /*if ((MessageFlag)flag == MessageFlag::Accept) {
+    /*if ((MessageFlag)flag == MessageFlag::Accept) {
 
-  }*/
+    }*/
 
-  unsigned short type = reader.ReadUInt16();
+    /*unsigned short type = reader.ReadUInt16();
 
-  if ((MessageType)type == MessageType::Chat) {
-    // const char *msg = reader.ReadCString();
-    std::string str = reader.ReadString();
-    // std::cout << " msg: " << msg << std::endl;
-    // std::cout << " str: " << str << std::endl;
-    Log("Message: " + str);
+    if ((MessageType)type == MessageType::Chat) {
+      // const char *msg = reader.ReadCString();
+      std::string str = reader.ReadString();
+      // std::cout << " msg: " << msg << std::endl;
+      // std::cout << " str: " << str << std::endl;
+      Log("Message: " + str);
+    }*/
+
+   // without header
+   std::string messageData = data.erase(0, ConnectionState::headerSize);
+
+    _eventDispatcher.Add([connectionState, messageData, this]() {
+      if (OnReceiveCallback) {
+        OnReceiveCallback(connectionState, messageData);
+      }
+    });
   }
 }
 
