@@ -217,15 +217,26 @@ void MainServer::SendCallback(ConnectionState *connectionState,
 
   std::cout << "data " << messageData << std::endl;
 
+  struct sockaddr_in client_addr = *connectionState->GetSockaddr();
+
   // Отправка ответа клиенту обратно его же сообщения
   int s = sendto(_serverSocket, messageData.c_str(), messageData.length(), 0,
-                 (struct sockaddr *)connectionState->GetSockaddr(),
-                 sizeof(connectionState->GetSockaddr()));
-  std::cout << "Sent " << std::to_string(s) << " bytes"
-            << " to "
-            << NetHelper::SockaddrToString(
-                   (sockaddr *)connectionState->GetSockaddr())
-            << std::endl;
+                 (struct sockaddr *)&client_addr,
+                 sizeof(client_addr));
+  if (s > 0) {
+    /*std::cout << "Sent " << std::to_string(s) << " bytes"
+              << " to "
+              << NetHelper::SockaddrToString(
+                     (sockaddr *)connectionState->GetSockaddr())
+              << std::endl;*/
+    Log("Sent: " + std::to_string(s) + " bytes to " +
+            NetHelper::SockaddrToString(
+                (sockaddr *)connectionState->GetSockaddr()),
+        LogType::Log);
+  } else {
+    Log("SendCallback error: " + std::to_string(WSAGetLastError()),
+        LogType::Error);
+  }
 }
 
 void MainServer::PollEvents() { _eventDispatcher.Execute(); }
