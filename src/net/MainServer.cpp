@@ -69,6 +69,11 @@ void MainServer::ListenCallback() {
   Log("UDP server start listening at " +
           NetHelper::SockaddrToString(&_serverAddr),
       LogType::Info);
+  _eventDispatcher.Add([this]() {
+    if (OnStartCallback) {
+      OnStartCallback();
+    }
+  });
   while (_listening) {
     struct sockaddr_in client_addr;
     char *buffer = new char[ConnectionState::bufferSize];
@@ -80,7 +85,8 @@ void MainServer::ListenCallback() {
     if (bytesRead >= 0) {
       std::string data;
       data.assign(buffer, bytesRead);
-      //Log("Test 1: " + NetHelper::SockaddrToString((sockaddr *)&client_addr));
+      // Log("Test 1: " + NetHelper::SockaddrToString((sockaddr
+      // *)&client_addr));
       ReadCallback(&client_addr, data);
 
     } else {
@@ -132,7 +138,7 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
   ConnectionState *connectionState = FindConnectionState(addr);
 
   if (!connectionState) {
-    /*ConnectionState **/connectionState = new ConnectionState(addr);
+    /*ConnectionState **/ connectionState = new ConnectionState(addr);
     _connectionStates.push_back(connectionState);
     // Log("New connection " + NetHelper::SockaddrToString(addr) + ", added");
     _eventDispatcher.Add([connectionState, this]() {
@@ -143,60 +149,59 @@ void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
   } else {
     // Log("Connection " + NetHelper::SockaddrToString(addr) + " exists, nope");
   }
-    /*int i = 0;
-    for (const auto &element : _connectionStates) {
-      i++;
-      Log("Test 2: element " + std::to_string(i) + " " +
-          NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
-          // NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
-          // NetHelper::SockaddrToString((sockaddr
-          // *)element.second->GetSockaddr()));
-          NetHelper::SockaddrToString((sockaddr *)element->GetSockaddr()));
-    }*/
+  /*int i = 0;
+  for (const auto &element : _connectionStates) {
+    i++;
+    Log("Test 2: element " + std::to_string(i) + " " +
+        NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
+        // NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
+        // NetHelper::SockaddrToString((sockaddr
+        // *)element.second->GetSockaddr()));
+        NetHelper::SockaddrToString((sockaddr *)element->GetSockaddr()));
+  }*/
 
-    /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
-              << " id " << (int)id << " flag "
-              << NetHelper::MessageFlagToString(flag) //<< " type "
-              //<< NetHelper::MessageTypeToString(type)
-              << " received " << (int)data.length() << " bytes" << std::endl;*/
+  /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
+            << " id " << (int)id << " flag "
+            << NetHelper::MessageFlagToString(flag) //<< " type "
+            //<< NetHelper::MessageTypeToString(type)
+            << " received " << (int)data.length() << " bytes" << std::endl;*/
 
-    Log("From " + NetHelper::SockaddrToString(addr) + " id " +
-        std::to_string((int)id) + " flag " +
-        NetHelper::MessageFlagToString(flag) + " received " +
-        std::to_string((int)data.length()) + " bytes");
+  Log("From " + NetHelper::SockaddrToString(addr) + " id " +
+      std::to_string((int)id) + " flag " +
+      NetHelper::MessageFlagToString(flag) + " received " +
+      std::to_string((int)data.length()) + " bytes");
 
-    /*std::cout << "Receive " << (int)data.length() << " bytes"
-              << " flag " << NetHelper::MessageFlagToString(flag) << " type "
-              << NetHelper::MessageTypeToString(type) << " from "
-              << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
+  /*std::cout << "Receive " << (int)data.length() << " bytes"
+            << " flag " << NetHelper::MessageFlagToString(flag) << " type "
+            << NetHelper::MessageTypeToString(type) << " from "
+            << NetHelper::SockaddrToString((sockaddr *)addr) << std::endl;*/
 
-    // auto conn = _connectionStates.find(addr);
-    // if (conn != _connectionStates.end()) {
-    //   ConnectionState *connectionState = conn->second;
+  // auto conn = _connectionStates.find(addr);
+  // if (conn != _connectionStates.end()) {
+  //   ConnectionState *connectionState = conn->second;
 
-    /*if ((MessageFlag)flag == MessageFlag::Accept) {
+  /*if ((MessageFlag)flag == MessageFlag::Accept) {
 
-    }*/
+  }*/
 
-    /*unsigned short type = reader.ReadUInt16();
+  /*unsigned short type = reader.ReadUInt16();
 
-    if ((MessageType)type == MessageType::Chat) {
-      // const char *msg = reader.ReadCString();
-      std::string str = reader.ReadString();
-      // std::cout << " msg: " << msg << std::endl;
-      // std::cout << " str: " << str << std::endl;
-      Log("Message: " + str);
-    }*/
+  if ((MessageType)type == MessageType::Chat) {
+    // const char *msg = reader.ReadCString();
+    std::string str = reader.ReadString();
+    // std::cout << " msg: " << msg << std::endl;
+    // std::cout << " str: " << str << std::endl;
+    Log("Message: " + str);
+  }*/
 
-   // without header
-   std::string messageData = data.erase(0, ConnectionState::headerSize);
+  // without header
+  std::string messageData = data.erase(0, ConnectionState::headerSize);
 
-    _eventDispatcher.Add([connectionState, messageData, this]() {
-      if (OnReceiveCallback) {
-        OnReceiveCallback(connectionState, messageData);
-      }
-    });
-  
+  _eventDispatcher.Add([connectionState, messageData, this]() {
+    if (OnReceiveCallback) {
+      OnReceiveCallback(connectionState, messageData);
+    }
+  });
 }
 
 std::string MainServer::GetHeader(unsigned short size, char id,
@@ -303,6 +308,11 @@ void MainServer::Disconnect(ConnectionState *connectionState) {
 }
 
 void MainServer::Close() {
+  _eventDispatcher.Add([this]() {
+    if (OnCloseCallback) {
+      OnCloseCallback();
+    }
+  });
   _listening = false;
   Log("UDP server closed", LogType::Info);
 //
@@ -314,4 +324,11 @@ void MainServer::Close() {
 #endif
 }
 
-void MainServer::Stop() { Close(); }
+void MainServer::Stop() {
+  _eventDispatcher.Add([this]() {
+    if (OnStopCallback) {
+      OnStopCallback();
+    }
+  });
+   Close(); 
+   }

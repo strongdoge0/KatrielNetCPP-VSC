@@ -11,8 +11,8 @@ std::string password = "user1";
 std::thread updateCallbackThread;
 MainServer *server = nullptr;
 
-//std::unordered_map<ConnectionState*, Player*> players;
-std::vector<ConnectionState*> connectionStates;
+// std::unordered_map<ConnectionState*, Player*> players;
+std::vector<ConnectionState *> connectionStates;
 std::mutex connectionStatesLock;
 
 int PressAnyKey();
@@ -37,7 +37,7 @@ void InitCommandLineArgs() {
   // nope
 }
 
-void Log(std::string message, LogType logType = LogType::Log){
+void Log(std::string message, LogType logType = LogType::Log) {
   std::time_t now = std::time(0);
   std::tm *localTime = std::localtime(&now);
   std::string prefix = "[" + std::to_string(localTime->tm_hour) + ":" +
@@ -51,21 +51,49 @@ void OnLogCallback(std::string message, LogType logType) {
   std::cout << message << std::endl;
 }
 
+void OnStartCallback() {
+  Log("Server started");
+}
+
+void OnStopCallback() {
+  Log("Server stopped");
+}
+
 void OnConnectCallback(ConnectionState *connectionState) {
   std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
   connectionStates.push_back(connectionState);
-  
-  //std::cout << "New connection " << NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
-  Log("New connection " + NetHelper::SockaddrToString(connectionState->GetSockaddr()));
-  //const char* msg = "Server: Welcome to the " + name.c_str() + ", this is a test message from server to new connection - for you!";
-  std::string welcomeMessage = "Server: Welcome to the " + name + ", this is a welcome message from server to new connection - to you! Привет";
-  server->SendSingleMessageTo(connectionState, (char)0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, welcomeMessage});
-  //server->SendMessageTo(connectionState, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, welcomeMessage});
+
+  // std::cout << "New connection " <<
+  // NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
+  Log("New connection " +
+      NetHelper::SockaddrToString(connectionState->GetSockaddr()));
+  // const char* msg = "Server: Welcome to the " + name.c_str() + ", this is a
+  // test message from server to new connection - for you!";
+  std::string welcomeMessage = "Server: Welcome to the " + name +
+                               ", this is a welcome message from server to new "
+                               "connection - to you! Привет";
+  server->SendSingleMessageTo(
+      connectionState, (char)0, MessageFlag::Unreliable,
+      {(unsigned short)MessageType::Chat, welcomeMessage});
+  // server->SendMessageTo(connectionState, MessageFlag::Unreliable, {(unsigned
+  // short)MessageType::Chat, welcomeMessage});
+}
+
+void OnDisconnectCallback(ConnectionState *connectionState) {
+  std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
+  for (int i = 0; i < connectionStates.size(); i++) {
+    if (connectionStates[i] == connectionState){
+       Log("Client disconnected " +
+      NetHelper::SockaddrToString(connectionState->GetSockaddr()));
+      connectionStates.erase(connectionStates.begin() + i);
+      break;
+    }
+  }
 }
 
 void OnReceiveCallback(ConnectionState *connectionState, std::string data) {
-  //std::cout << "data: " << data << std::endl;
-  
+  // std::cout << "data: " << data << std::endl;
+
   MessageReader reader = MessageReader(data);
   unsigned short type = reader.ReadUInt16();
 
@@ -76,27 +104,31 @@ void OnReceiveCallback(ConnectionState *connectionState, std::string data) {
     // std::cout << " str: " << str << std::endl;
     Log("Message: " + str);
   }
-  
+}
+
+void OnCloseCallback() {
+  Log("Server closed");
 }
 
 void UpdateCallback() {
   while (server->IsActive()) {
     server->PollEvents();
-#ifdef _WIN32    
+#ifdef _WIN32
     Sleep(100);
 #else
-    //sleep(100);
-    usleep(100000); //100000 микросекунд = 100 мс
+    // sleep(100);
+    usleep(100000); // 100000 микросекунд = 100 мс
 #endif
   }
-  //std::cout << "UpdateCallback closed" << std::endl;
-  Log("UpdateCallback closed");
+  // std::cout << "UpdateCallback closed" << std::endl;
+  Log("Update thread closed");
 }
 
-void SendToAll(std::string message){
+void SendToAll(std::string message) {
   std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
-  for (int i = 0; i < connectionStates.size(); i++){
-    server->SendSingleMessageTo(connectionStates[i], 0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, message});
+  for (int i = 0; i < connectionStates.size(); i++) {
+    server->SendSingleMessageTo(connectionStates[i], 0, MessageFlag::Unreliable,
+                                {(unsigned short)MessageType::Chat, message});
   }
 }
 
@@ -110,8 +142,12 @@ int main(int argc, char **argv) {
 
   server = new MainServer();
   server->OnLogCallback = OnLogCallback;
+  server->OnStartCallback = OnStartCallback;
+  server->OnStopCallback = OnStopCallback;
   server->OnConnectCallback = OnConnectCallback;
+  server->OnDisconnectCallback = OnDisconnectCallback;
   server->OnReceiveCallback = OnReceiveCallback;
+  server->OnCloseCallback = OnCloseCallback;
   server->Listen(port);
 
   updateCallbackThread = std::thread(UpdateCallback);
@@ -122,7 +158,7 @@ int main(int argc, char **argv) {
 
     if (cmd == "q") {
       server->Stop();
-    }else{
+    } else {
       SendToAll("Server:" + cmd);
     }
   }
