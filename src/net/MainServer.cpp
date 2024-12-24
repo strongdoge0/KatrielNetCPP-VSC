@@ -80,7 +80,7 @@ void MainServer::ListenCallback() {
     if (bytesRead >= 0) {
       std::string data;
       data.assign(buffer, bytesRead);
-
+      Log("Test 1: " + NetHelper::SockaddrToString((sockaddr *)&client_addr));
       ReadCallback(&client_addr, data);
 
     } else {
@@ -91,25 +91,36 @@ void MainServer::ListenCallback() {
   }
 }
 
-void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
+void MainServer::ReadCallback(struct sockaddr_in *addr, std::string data) {
 
   MessageReader reader = MessageReader(data);
   // unsigned short size = reader.ReadUInt16();
   char id = reader.ReadChar();
   char flag = reader.ReadChar();
 
-  if (_connectionStates.count(addr) > 0) {
-    // ConnectionState *connectionState = _connectionStates[addr];
-    //  Log("Connection exists, nope");
+  // auto it = _connectionStates.find(addr);
+  // if (it != _connectionStates.end()) {
+
+  if (false) {
+    //  ConnectionState *connectionState = _connectionStates[addr];
+    Log("Connection exists, nope");
   } else {
     ConnectionState *connectionState = new ConnectionState(addr);
-    _connectionStates[addr] = connectionState;
-    // Log("New connection, added to map");
-    _eventDispatcher.Add([connectionState, this]() {
-      if (OnConnectCallback) {
-        OnConnectCallback(connectionState);
-      }
-    });
+    auto result = _connectionStates.insert({addr, connectionState});
+    if (result.second) {
+      // Log("New connection, added to map");
+      _eventDispatcher.Add([connectionState, this]() {
+        if (OnConnectCallback) {
+          OnConnectCallback(connectionState);
+        }
+      });
+    }
+  }
+
+  for (const auto& element: _connectionStates) {
+    Log("Test 2: " + NetHelper::SockaddrToString((sockaddr *)addr) + "|" +
+        NetHelper::SockaddrToString((sockaddr *)element.first) + "|" +
+        NetHelper::SockaddrToString((sockaddr *)element.second->GetSockaddr()));
   }
 
   /*std::cout << "Log: From " << NetHelper::SockaddrToString((sockaddr *)addr)
@@ -193,21 +204,23 @@ void MainServer::SendSingleMessageTo(ConnectionState *connectionState, char id,
 }*/
 
 void MainServer::SendSingleMessageTo(ConnectionState *connectionState, char id,
-                                     MessageFlag flag, std::string msg) {
-  std::vector<std::any> vector;
-  vector.push_back(msg);
+                                     MessageFlag flag,
+                                     std::vector<std::any> args) {
+  // std::vector<std::any> vector;
+  // vector.push_back(msg);
   //(vector.push_back(std::forward<T>(args)), ...);
-  std::string data = GetData(vector);
+  std::string data = GetData(args);
   std::string header = GetHeader(data.length(), 0, flag);
   SendCallback(connectionState, header + data);
 }
 
-template <typename... T>
+// template <typename... T>
 void MainServer::SendMessageTo(ConnectionState *connectionState,
-                               MessageFlag flag, T... args) {
-  std::vector<std::any> vector;
-  (vector.push_back(std::forward<T>(args)), ...);
-  std::string data = GetData(vector);
+                               MessageFlag flag, std::vector<std::any> args) {
+  // std::vector<std::any> vector;
+  //(vector.push_back(std::forward<T>(args)), ...);
+  // for
+  std::string data = GetData(args);
   std::string header = GetHeader(data.length(), 0, flag);
   SendCallback(connectionState, header + data);
 }
@@ -215,14 +228,13 @@ void MainServer::SendMessageTo(ConnectionState *connectionState,
 void MainServer::SendCallback(ConnectionState *connectionState,
                               std::string messageData) {
 
-  //std::cout << "data " << messageData << std::endl;
+  // std::cout << "data " << messageData << std::endl;
 
   struct sockaddr_in client_addr = *connectionState->GetSockaddr();
 
   // Отправка ответа клиенту обратно его же сообщения
   int s = sendto(_serverSocket, messageData.c_str(), messageData.length(), 0,
-                 (struct sockaddr *)&client_addr,
-                 sizeof(client_addr));
+                 (struct sockaddr *)&client_addr, sizeof(client_addr));
   if (s > 0) {
     /*std::cout << "Sent " << std::to_string(s) << " bytes"
               << " to "

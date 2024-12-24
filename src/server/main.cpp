@@ -10,6 +10,10 @@ std::string password = "user1";
 std::thread updateCallbackThread;
 MainServer *server = nullptr;
 
+//std::unordered_map<ConnectionState*, Player*> players;
+std::vector<ConnectionState*> connectionStates;
+std::mutex connectionStatesLock;
+
 int PressAnyKey();
 
 std::string FindArgumentInCommandLine(std::string argument) {
@@ -37,10 +41,13 @@ void OnLogCallback(std::string message, LogType logType) {
 }
 
 void OnConnectCallback(ConnectionState *connectionState) {
+  std::unique_lock<std::mutex> guard(connectionStatesLock, std::try_to_lock);
+  connectionStates.push_back(connectionState);
+  
   std::cout << "New connection " << NetHelper::SockaddrToString(connectionState->GetSockaddr()) << std::endl;
   const char* msg = "Server: Welcome, this is a test message from server to new connection - for you!";
-  server->SendSingleMessageTo(connectionState, (char)0, MessageFlag::Unreliable, msg);
-  //server->SendMessageTo(connectionState, MessageFlag::Unreliable, "Server: Welcome, this is a test message from server to new connection - for you!", "2");
+  server->SendSingleMessageTo(connectionState, (char)0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, msg});
+  //server->SendMessageTo(connectionState, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, msg});
 }
 
 void UpdateCallback() {
@@ -54,6 +61,12 @@ void UpdateCallback() {
 #endif
   }
   std::cout << "UpdateCallback closed" << std::endl;
+}
+
+void SendToAll(std::string message){
+  for (int i = 0; i < connectionStates.size(); i++){
+    server->SendSingleMessageTo(connectionStates[i], 0, MessageFlag::Unreliable, {(unsigned short)MessageType::Chat, message});
+  }
 }
 
 int main(int argc, char **argv) {
@@ -78,7 +91,7 @@ int main(int argc, char **argv) {
     if (cmd == "q") {
       server->Stop();
     }else{
-      
+      SendToAll("Server:" + cmd);
     }
   }
 

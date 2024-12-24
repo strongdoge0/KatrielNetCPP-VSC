@@ -202,7 +202,8 @@ void StartClient() {
                   << +testData[i] << std::endl;
       }
       std::cout << std::endl;*/
-
+      //unsigned char size = reader.ReadUInt16();
+      char id = reader.ReadChar();
       char flag = reader.ReadChar();
       unsigned char type = reader.ReadUInt16();
       /*std::cout << "Receive " << std::to_string(n) << " bytes"
@@ -218,9 +219,9 @@ void StartClient() {
 
       if ((MessageType)type == MessageType::Chat) {
         const char *msg = reader.ReadCString();
-        std::string str = reader.ReadString();
+        //std::string str = reader.ReadString();
         std::cout << " msg: " << msg << std::endl;
-        std::cout << " str: " << str << std::endl;
+        //std::cout << " str: " << str << std::endl;
         //std::cout << " data: " << buffer << std::endl;
       }
     }

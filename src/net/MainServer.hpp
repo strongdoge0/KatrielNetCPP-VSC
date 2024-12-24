@@ -45,9 +45,8 @@ public:
     //void AcceptConnection(IPEndPoint endPoint, string key);
     //template <typename... T>
     //void SendSingleMessageTo(ConnectionState *connectionState, char id, MessageFlag flag, T... args);
-    void SendSingleMessageTo(ConnectionState *connectionState, char id, MessageFlag flag, std::string msg);
-    template <typename... T>
-    void SendMessageTo(ConnectionState *connectionState, MessageFlag flag, T... args);
+    void SendSingleMessageTo(ConnectionState *connectionState, char id, MessageFlag flag, std::vector<std::any> msg);
+    void SendMessageTo(ConnectionState *connectionState, MessageFlag flag, std::vector<std::any> args);
     void PollEvents();
     void Disconnect(ConnectionState *connectionState);
     void Stop();

@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <mutex>
 
 #define _SERVER
 #include "../net/KatrielNet.hpp"
