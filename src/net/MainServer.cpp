@@ -28,10 +28,10 @@ void MainServer::Log(std::string message, LogType logType) {
 
 bool MainServer::Listen(int port) {
   _port = port;
-  #ifdef _WIN32
+#ifdef _WIN32
   // Инициализация Winsock
   WSAStartup(MAKEWORD(2, 2), &wsaData);
-  #endif
+#endif
 
   // Создание UDP сокета
   _serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -84,11 +84,9 @@ void MainServer::ListenCallback() {
       ReadCallback(&client_addr, data);
 
     } else {
-      /*std::cout << "Receive " << std::to_string(bytesRead) << " bytes from "
-                << NetHelper::SockaddrToString((sockaddr *)&client_addr)
-                << std::endl;*/
-      Log("From " + NetHelper::SockaddrToString(&client_addr) + " received " +
-          std::to_string(bytesRead) + " bytes");
+      // -1 ни к чему
+      /*Log("From " + NetHelper::SockaddrToString(&client_addr) + " received " +
+          std::to_string(bytesRead) + " bytes");*/
     }
   }
 }
@@ -101,8 +99,8 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
   char flag = reader.ReadChar();
 
   if (_connectionStates.count(addr) > 0) {
-    ConnectionState *connectionState = _connectionStates[addr];
-    // Log("Connection exists, nope");
+    // ConnectionState *connectionState = _connectionStates[addr];
+    //  Log("Connection exists, nope");
   } else {
     ConnectionState *connectionState = new ConnectionState(addr);
     _connectionStates[addr] = connectionState;
@@ -149,22 +147,103 @@ void MainServer::ReadCallback(sockaddr_in *addr, std::string data) {
   }
 }
 
+std::string MainServer::GetHeader(unsigned short size, char id,
+                                  MessageFlag flag) {
+  MessageWriter writer = MessageWriter();
+  // writer.Write(size);
+  writer.Write(id);
+  writer.Write((char)flag);
+  return writer.GetData();
+}
+
+std::string MainServer::GetData(std::vector<std::any> vector) {
+  MessageWriter writer = MessageWriter();
+  for (int i = 0; i < vector.size(); i++) {
+    if (vector[i].type() == typeid(bool)) {
+      writer.Write(std::any_cast<bool>(vector[i]));
+    } else if (vector[i].type() == typeid(char)) {
+      writer.Write(std::any_cast<char>(vector[i]));
+    } else if (vector[i].type() == typeid(short)) {
+      writer.Write(std::any_cast<short>(vector[i]));
+    } else if (vector[i].type() == typeid(unsigned short)) {
+      writer.Write(std::any_cast<unsigned short>(vector[i]));
+    } else if (vector[i].type() == typeid(int)) {
+      writer.Write(std::any_cast<int>(vector[i]));
+    } else if (vector[i].type() == typeid(unsigned int)) {
+      writer.Write(std::any_cast<unsigned int>(vector[i]));
+    } else if (vector[i].type() == typeid(float)) {
+      writer.Write(std::any_cast<float>(vector[i]));
+    } else if (vector[i].type() == typeid(const char *)) {
+      writer.Write(std::any_cast<const char *>(vector[i]));
+    } else if (vector[i].type() == typeid(std::string)) {
+      writer.Write(std::any_cast<std::string>(vector[i]));
+    }
+  }
+  return writer.GetData();
+}
+
+/*template <typename... T>
+void MainServer::SendSingleMessageTo(ConnectionState *connectionState, char id,
+                                   MessageFlag flag, T... args) {
+  std::vector<std::any> vector;
+  (vector.push_back(std::forward<T>(args)), ...);
+  std::string data = GetData(vector);
+  std::string header = GetHeader(data.length(), 0, flag);
+  SendCallback(connectionState, header + data);
+}*/
+
+void MainServer::SendSingleMessageTo(ConnectionState *connectionState, char id,
+                                     MessageFlag flag, std::string msg) {
+  std::vector<std::any> vector;
+  vector.push_back(msg);
+  //(vector.push_back(std::forward<T>(args)), ...);
+  std::string data = GetData(vector);
+  std::string header = GetHeader(data.length(), 0, flag);
+  SendCallback(connectionState, header + data);
+}
+
+template <typename... T>
+void MainServer::SendMessageTo(ConnectionState *connectionState,
+                               MessageFlag flag, T... args) {
+  std::vector<std::any> vector;
+  (vector.push_back(std::forward<T>(args)), ...);
+  std::string data = GetData(vector);
+  std::string header = GetHeader(data.length(), 0, flag);
+  SendCallback(connectionState, header + data);
+}
+
+void MainServer::SendCallback(ConnectionState *connectionState,
+                              std::string messageData) {
+
+  std::cout << "data " << messageData << std::endl;
+
+  // Отправка ответа клиенту обратно его же сообщения
+  int s = sendto(_serverSocket, messageData.c_str(), messageData.length(), 0,
+                 (struct sockaddr *)connectionState->GetSockaddr(),
+                 sizeof(connectionState->GetSockaddr()));
+  std::cout << "Sent " << std::to_string(s) << " bytes"
+            << " to "
+            << NetHelper::SockaddrToString(
+                   (sockaddr *)connectionState->GetSockaddr())
+            << std::endl;
+}
+
 void MainServer::PollEvents() { _eventDispatcher.Execute(); }
 
-void MainServer::Disconnect(ConnectionState connectionState) {
+void MainServer::Disconnect(ConnectionState *connectionState) {
   //
 }
 
 void MainServer::Close() {
   _listening = false;
   Log("UDP server closed", LogType::Info);
-  //
-  #ifdef _WIN32
+//
+#ifdef _WIN32
   closesocket(_serverSocket); // Закрытие сокета
-  WSACleanup();        // Очистка Winsock
-  #elif __linux__
+  WSACleanup();               // Очистка Winsock
+#elif __linux__
   close(_serverSocket);
-  #endif
+#endif
 }
 
 void MainServer::Stop() { Close(); }

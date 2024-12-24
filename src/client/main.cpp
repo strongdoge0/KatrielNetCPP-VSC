@@ -159,7 +159,7 @@ void StartClient() {
               << NetHelper::SockaddrToString((sockaddr *)&server_addr)
               << std::endl;
 
-    continue;
+    //continue;
 
     // char buffer[1024];
     int bufferSize = 1024; // + 1;

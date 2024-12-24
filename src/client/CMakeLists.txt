@@ -15,6 +15,11 @@ set(CMAKE_CXX_STANDARD 20)
 #set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "/NODEFAULTLIBS:MSVCRT" )
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+endif()
+
 #file(GLOB net "src/net/*.h" "src/net/*.hpp" "src/net/*.cpp" "src/net/*.c")
 #file(GLOB classes "src/classes/*.h" "src/classes/*.hpp" "src/classes/*.cpp" "src/classes/*.c")
 file(GLOB src "*.h" "*.hpp" "*.c" "*.cpp")

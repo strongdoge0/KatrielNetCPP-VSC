@@ -5,6 +5,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <any>
 #include <functional>
 #include <mutex>
 #include <ctime>
@@ -42,10 +43,13 @@ public:
     void ListenCallback();
     //void ReceiveCallback(UdpReceiveResult result, byte[] bytesData);
     //void AcceptConnection(IPEndPoint endPoint, string key);
-    //void SendSingleMessage(ConnectionState connectionState, MessageFlag flag, byte id, params object[] args);
-    //void SendMessage(ConnectionState connectionState, MessageFlag flag, params object[] args);
+    //template <typename... T>
+    //void SendSingleMessageTo(ConnectionState *connectionState, char id, MessageFlag flag, T... args);
+    void SendSingleMessageTo(ConnectionState *connectionState, char id, MessageFlag flag, std::string msg);
+    template <typename... T>
+    void SendMessageTo(ConnectionState *connectionState, MessageFlag flag, T... args);
     void PollEvents();
-    void Disconnect(ConnectionState connectionState);
+    void Disconnect(ConnectionState *connectionState);
     void Stop();
     
 private:
@@ -63,7 +67,9 @@ private:
     
     void Log(std::string message, LogType logType = LogType::Log);
     void ReadCallback(struct sockaddr_in *addr, std::string data);
-    //byte[] GetBytes(params object[] args)
+    std::string GetHeader(unsigned short size, char id, MessageFlag flag);
+    std::string GetData(std::vector<std::any> vector);
+    void SendCallback(ConnectionState *connectionState, std::string messageData);
     //bool UpdateConnectionState(ConnectionState connectionState);
     void Close();
     
